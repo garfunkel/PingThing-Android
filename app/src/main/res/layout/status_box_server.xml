@@ -2,7 +2,7 @@
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
-	android:id="@+id/status_box"
+	android:id="@+id/status_box_server"
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
 	android:layout_margin="5dp"
@@ -28,14 +28,15 @@
 		android:columnCount="2">
 
 		<TextView
-			android:paddingRight="5dp"
-			android:text="URL:"
+			android:paddingEnd="5dp"
+			android:text="Host:"
 			android:textAppearance="?android:textAppearanceMedium"
 			android:textColor="#000000"
-			android:textStyle="bold"/>
+			android:textStyle="bold"
+			android:paddingRight="5dp"/>
 
 		<TextView
-			android:id="@+id/url"
+			android:id="@+id/host"
 			android:textAppearance="?android:textAppearanceMedium"
 			android:textColor="#000000"/>
 

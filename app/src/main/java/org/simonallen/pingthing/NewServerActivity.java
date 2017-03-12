@@ -1,11 +1,13 @@
 package org.simonallen.pingthing;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 public class NewServerActivity extends AppCompatActivity {
 
@@ -29,12 +31,21 @@ public class NewServerActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				finish();
+		Intent intent = new Intent();
 
-				return true;
+		switch (item.getItemId()) {
+			case R.id.add:
+				intent.putExtra("name", ((EditText)findViewById(R.id.exittext_name)).getText().toString());
+				intent.putExtra("host", ((EditText)findViewById(R.id.edittext_host)).getText().toString());
+				//intent.putExtra("statusCodes", )
+				setResult(RESULT_OK, intent);
+				break;
+
+			default:
+				setResult(RESULT_CANCELED, intent);
 		}
+
+		finish();
 
 		return super.onOptionsItemSelected(item);
 	}

@@ -1,67 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<android.support.design.widget.CoordinatorLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:orientation="vertical"
+	android:fitsSystemWindows="true"
 	tools:context="org.simonallen.pingthing.NewServerActivity">
-
-	<include layout="@layout/toolbar_new"/>
 
 	<LinearLayout
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:orientation="vertical"
-		android:paddingLeft="24dp"
-		android:paddingRight="24dp">
+		android:layout_height="match_parent"
+		android:orientation="vertical">
 
-		<android.support.design.widget.TextInputLayout
-			android:id="@+id/layout_name"
+		<android.support.design.widget.AppBarLayout
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_marginBottom="8dp"
-			android:layout_marginTop="8dp">
+			android:layout_height="wrap_content"
+			android:theme="@style/AppTheme.AppBarOverlay">
 
-			<EditText
-				android:id="@+id/exittext_name"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:hint="@string/name"
-				android:inputType="text"/>
-		</android.support.design.widget.TextInputLayout>
+			<include layout="@layout/toolbar_new"/>
+		</android.support.design.widget.AppBarLayout>
 
-		<android.support.design.widget.TextInputLayout
-			android:id="@+id/layout_host"
+		<LinearLayout
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_marginBottom="8dp"
-			android:layout_marginTop="8dp">
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:paddingLeft="24dp"
+			android:paddingRight="24dp">
 
-			<EditText
-				android:id="@+id/edittext_host"
+			<android.support.design.widget.TextInputLayout
+				android:id="@+id/layout_name"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:hint="@string/host"
-				android:inputType="textUri"/>
-		</android.support.design.widget.TextInputLayout>
+				android:layout_height="match_parent"
+				android:layout_marginBottom="8dp"
+				android:layout_marginTop="8dp">
 
-		<android.support.design.widget.TextInputLayout
-			android:id="@+id/layout_interval"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_marginBottom="8dp"
-			android:layout_marginTop="8dp">
+				<EditText
+					android:id="@+id/exittext_name"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/name"
+					android:inputType="text"/>
+			</android.support.design.widget.TextInputLayout>
 
-			<EditText
-				android:id="@+id/edittext_interval"
+			<android.support.design.widget.TextInputLayout
+				android:id="@+id/layout_host"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:hint="Ping interval (seconds)"
-				android:inputType="numberDecimal"/>
-		</android.support.design.widget.TextInputLayout>
+				android:layout_height="match_parent"
+				android:layout_marginBottom="8dp"
+				android:layout_marginTop="8dp">
 
+				<EditText
+					android:id="@+id/edittext_host"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/host"
+					android:inputType="textUri"/>
+			</android.support.design.widget.TextInputLayout>
+
+		</LinearLayout>
 	</LinearLayout>
 
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

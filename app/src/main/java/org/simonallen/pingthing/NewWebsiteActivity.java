@@ -23,9 +23,9 @@ import android.widget.Toast;
 import java.util.HashMap;
 
 public class NewWebsiteActivity extends AppCompatActivity {
-	private SparseArray<String> mStatusCodeMap;
 	private String[] mAllStatusCodes;
 	private boolean[] mSelectedItems;
+	private AlertDialog mExpectedStatusCodesDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,8 @@ public class NewWebsiteActivity extends AppCompatActivity {
 		setSupportActionBar(toolbar);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setDisplayShowHomeEnabled(true);
-		mStatusCodeMap = parseStatusCodes();
+
+		buildExpectedStatusCodesDialog();
 
 		EditText et = (EditText) findViewById(R.id.edittext_status_codes);
 
@@ -127,11 +128,10 @@ public class NewWebsiteActivity extends AppCompatActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void handleSelectStatus(View v) {
-		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+	private void buildExpectedStatusCodesDialog() {
+		EditText et = (EditText) findViewById(R.id.edittext_status_codes);
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+		AlertDialog.Builder builder = new AlertDialog.Builder(et.getContext());
 		builder.setTitle(R.string.select_expected_http_status_codes);
 		builder.setMultiChoiceItems(R.array.http_status_codes, mSelectedItems, new DialogInterface.OnMultiChoiceClickListener() {
 			@Override
@@ -157,19 +157,13 @@ public class NewWebsiteActivity extends AppCompatActivity {
 				et.setText(value);
 			}
 		});
-		builder.create();
-		builder.show();
+		mExpectedStatusCodesDialog = builder.create();
 	}
 
+	private void handleSelectStatus(View v) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-	public SparseArray<String> parseStatusCodes() {
-		SparseArray<String> statusCodeMap = new SparseArray<>();
-		String[] statusCodes = getResources().getStringArray(R.array.http_status_codes);
-
-		for (String statusCode : statusCodes) {
-			statusCodeMap.put(Integer.parseInt(statusCode.substring(0, 3)), statusCode.substring(3));
-		}
-
-		return statusCodeMap;
+		mExpectedStatusCodesDialog.show();
 	}
 }

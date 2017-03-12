@@ -13,8 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.GridLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.clans.fab.FloatingActionMenu;
@@ -141,27 +139,37 @@ public class MainActivity extends AppCompatActivity
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.e("t", Integer.valueOf(resultCode).toString() + Integer.valueOf(RESULT_OK).toString());
-
 		if (resultCode == RESULT_OK) {
 			switch (requestCode) {
 				case mNewServerActivityCode:
 					addServer(data.getExtras());
 
+					break;
+
 				case mNewWebsiteActivityCode:
 					addWebsite(data.getExtras());
+
+					break;
 			}
 		}
 	}
 
 	private void addServer(Bundle bundle) {
+		FlexboxLayout container = (FlexboxLayout) findViewById(R.id.status_box_container);
+		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+		View statusBox = inflater.inflate(R.layout.status_box_server, container, false);
 
+		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
+		((TextView)statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
+		((TextView)statusBox.findViewById(R.id.status)).setText("Unknown status");
+
+		container.addView(statusBox);
 	}
 
 	private void addWebsite(Bundle bundle) {
 		FlexboxLayout container = (FlexboxLayout) findViewById(R.id.status_box_container);
 		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
-		View statusBox = inflater.inflate(R.layout.status_box, container, false);
+		View statusBox = inflater.inflate(R.layout.status_box_website, container, false);
 
 		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView)statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
