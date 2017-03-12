@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<array name="http_status_codes">
+		<item>100 (Continue)</item>
+		<item>101 (Switching Protocol)</item>
+		<item>200 (OK)</item>
+		<item>201 (Created)</item>
+		<item>202 (Accepted)</item>
+		<item>203 (Non-Authoritative Information)</item>
+		<item>204 (No Content)</item>
+		<item>205 (Reset Content)</item>
+		<item>206 (Partial Content)</item>
+		<item>300 (Multiple Choices)</item>
+		<item>301 (Moved Permanently)</item>
+		<item>302 (Found)</item>
+		<item>303 (See Other)</item>
+		<item>304 (Not Modified)</item>
+		<item>307 (Temporary Redirect)</item>
+		<item>308 (Permanent Redirect)</item>
+		<item>400 (Bad Request)</item>
+		<item>401 (Unauthorized)</item>
+		<item>403 (Forbidden)</item>
+		<item>404 (Not Found)</item>
+		<item>405 (Method Not Allowed)</item>
+		<item>406 (Not Acceptable)</item>
+		<item>407 (Proxy Authentication Required)</item>
+		<item>408 (Request Timeout)</item>
+		<item>409 (Conflict)</item>
+		<item>410 (Gone)</item>
+		<item>411 (Length Required)</item>
+		<item>412 (Precondition Failed)</item>
+		<item>413 (Payload Too Large)</item>
+		<item>414 (URI Too Long)</item>
+		<item>415 (Unsupported Media Type)</item>
+		<item>416 (Range Not Satisfiable)</item>
+		<item>417 (Expectation Failed)</item>
+		<item>426 (Upgrade Required)</item>
+		<item>428 (Precondition Required)</item>
+		<item>429 (Too Many Requests)</item>
+		<item>431 (Request Header Fields Too Large)</item>
+		<item>451 (Unavailable For Legal Reasons)</item>
+		<item>500 (Internal Server Error)</item>
+		<item>501 (Not Implemented)</item>
+		<item>502 (Bad Gateway)</item>
+		<item>503 (Service Unavailable)</item>
+		<item>504 (Gateway Timeout)</item>
+		<item>505 (HTTP Version Not Supported)</item>
+		<item>511 (Network Authentication Required)</item>
+	</array>
+</resources>

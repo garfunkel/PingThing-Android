@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/monitorListBackground"
+	app:layout_behavior="@string/appbar_scrolling_view_behavior"
+	tools:context="org.simonallen.pingthing.MainActivity"
+	tools:showIn="@layout/app_bar_main">
+
+	<ScrollView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
+
+		<com.google.android.flexbox.FlexboxLayout
+			android:id="@+id/status_box_container"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_margin="5dp"
+			app:alignContent="stretch"
+			app:alignItems="stretch"
+			app:flexDirection="row"
+			app:flexWrap="wrap"
+			app:justifyContent="center">
+		</com.google.android.flexbox.FlexboxLayout>
+	</ScrollView>
+
+</android.support.constraint.ConstraintLayout>

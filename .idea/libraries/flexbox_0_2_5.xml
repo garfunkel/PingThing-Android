@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="flexbox-0.2.5">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.android/build-cache/efad2af8af757f8fb921a6e72ef8160a24e280e1/output/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.android/build-cache/efad2af8af757f8fb921a6e72ef8160a24e280e1/output/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.android/flexbox/0.2.5/9666f35725a58885385d0a5fc9cf986599a7a7e0/flexbox-0.2.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
