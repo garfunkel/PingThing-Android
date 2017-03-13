@@ -3,13 +3,14 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:id="@+id/status_box_website"
-	android:layout_width="wrap_content"
+	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:layout_margin="5dp"
 	android:background="@color/statusBoxUnknown"
 	android:elevation="4dp"
 	android:orientation="vertical"
 	android:padding="2.5dp"
+	android:tag="WEBSITE"
 	app:layout_flexGrow="1"
 	app:layout_minWidth="150dp">
 
@@ -21,8 +22,8 @@
 		<ImageView
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent"
-			android:paddingRight="5dp"
 			android:paddingEnd="5dp"
+			android:paddingRight="5dp"
 			android:src="@drawable/ic_web_black_24dp"/>
 
 		<TextView
@@ -32,7 +33,7 @@
 			android:ellipsize="end"
 			android:maxLines="1"
 			android:textAlignment="center"
-			android:textAppearance="?android:textAppearanceLarge"
+			android:textAppearance="?android:textAppearanceMedium"
 			android:textColor="#000000"
 			android:textStyle="bold"/>
 	</LinearLayout>
@@ -42,40 +43,62 @@
 		android:layout_height="1dp"
 		android:background="@color/monitorListBackground"/>
 
-	<GridLayout
-		android:layout_width="wrap_content"
+	<LinearLayout
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:columnCount="2">
+		android:orientation="horizontal">
 
-		<TextView
-			android:paddingEnd="5dp"
-			android:paddingRight="5dp"
-			android:text="URL:"
-			android:textAppearance="?android:textAppearanceMedium"
-			android:textColor="#000000"
-			android:textStyle="bold"/>
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
 
-		<TextView
-			android:id="@+id/url"
-			android:ellipsize="end"
-			android:maxLines="1"
-			android:textAppearance="?android:textAppearanceMedium"
-			android:textColor="#000000"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingEnd="5dp"
+				android:paddingRight="5dp"
+				android:text="URL:"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"
+				android:textStyle="bold"/>
 
-		<TextView
-			android:paddingRight="5dp"
-			android:paddingEnd="5dp"
-			android:text="Status:"
-			android:textAppearance="?android:textAppearanceMedium"
-			android:textColor="#000000"
-			android:textStyle="bold"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingEnd="5dp"
+				android:paddingRight="5dp"
+				android:text="Status:"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"
+				android:textStyle="bold"/>
+		</LinearLayout>
 
-		<TextView
-			android:id="@+id/status"
-			android:ellipsize="end"
-			android:maxLines="1"
-			android:textAppearance="?android:textAppearanceMedium"
-			android:textColor="#000000"/>
-	</GridLayout>
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+
+			<TextView
+				android:id="@+id/url"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:maxLines="1"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"/>
+
+			<TextView
+				android:id="@+id/status"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:maxLines="1"
+				android:text="Unknown"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"/>
+		</LinearLayout>
+
+	</LinearLayout>
 
 </LinearLayout>

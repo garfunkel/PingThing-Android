@@ -1,7 +1,9 @@
 package org.simonallen.pingthing;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.clans.fab.FloatingActionMenu;
@@ -23,6 +26,7 @@ public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener {
 	private final int mNewServerActivityCode = 0;
 	private final int mNewWebsiteActivityCode = 1;
+	private Pinger pinger;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +81,11 @@ public class MainActivity extends AppCompatActivity
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
+		FlexboxLayout statusBoxContainer = (FlexboxLayout)findViewById(R.id.status_box_container);
 
+		pinger = new Pinger(statusBoxContainer);
+
+		pinger.start();
 	}
 
 	@Override
@@ -161,7 +169,6 @@ public class MainActivity extends AppCompatActivity
 
 		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView)statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
-		((TextView)statusBox.findViewById(R.id.status)).setText("Unknown status");
 
 		container.addView(statusBox);
 	}
@@ -173,7 +180,6 @@ public class MainActivity extends AppCompatActivity
 
 		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView)statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
-		((TextView)statusBox.findViewById(R.id.status)).setText("Unknown status");
 
 		container.addView(statusBox);
 	}
