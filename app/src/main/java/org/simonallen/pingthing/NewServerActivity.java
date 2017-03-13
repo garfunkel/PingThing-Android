@@ -7,6 +7,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 
 public class NewServerActivity extends AppCompatActivity {
@@ -20,6 +23,22 @@ public class NewServerActivity extends AppCompatActivity {
 
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+		CheckBox icmp = (CheckBox)findViewById(R.id.icmp);
+
+		icmp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				EditText port = (EditText)findViewById(R.id.port);
+
+				if (isChecked) {
+					port.setEnabled(false);
+					port.setText("");
+				} else {
+					port.setEnabled(true);
+				}
+			}
+		});
 	}
 
 	@Override
