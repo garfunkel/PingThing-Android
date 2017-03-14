@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -22,11 +23,14 @@ import com.github.clans.fab.FloatingActionMenu;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.flexbox.FlexboxLayout;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener {
 	private final int mNewServerActivityCode = 0;
 	private final int mNewWebsiteActivityCode = 1;
 	private Pinger pinger;
+	private ArrayList<String> mPingerNames;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,7 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onClick(View view) {
 				Intent intent = new Intent(MainActivity.this, NewServerActivity.class);
+				intent.putExtra("existingNames", mPingerNames);
 
 				startActivityForResult(intent, mNewServerActivityCode);
 
@@ -82,7 +87,7 @@ public class MainActivity extends AppCompatActivity
 		navigationView.setNavigationItemSelectedListener(this);
 
 		FlexboxLayout statusBoxContainer = (FlexboxLayout)findViewById(R.id.status_box_container);
-
+		mPingerNames = new ArrayList<>();
 		pinger = new Pinger(statusBoxContainer);
 
 		pinger.start();
@@ -170,6 +175,10 @@ public class MainActivity extends AppCompatActivity
 		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView)statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
 
+		String name = ((TextView) statusBox.findViewById(R.id.name)).getText().toString();
+
+		mPingerNames.add(name);
+
 		container.addView(statusBox);
 	}
 
@@ -180,6 +189,10 @@ public class MainActivity extends AppCompatActivity
 
 		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView)statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
+
+		String name = ((TextView) statusBox.findViewById(R.id.name)).getText().toString();
+
+		mPingerNames.add(name);
 
 		container.addView(statusBox);
 	}

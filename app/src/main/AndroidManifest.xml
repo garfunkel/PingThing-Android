@@ -23,11 +23,13 @@
 		</activity>
 		<activity
 			android:name=".NewServerActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
 			android:label="@string/new_server"
 			android:theme="@style/AppTheme.NoActionBar">
 		</activity>
 		<activity
 			android:name=".NewWebsiteActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
 			android:label="@string/new_website"
 			android:theme="@style/AppTheme.NoActionBar">
 		</activity>

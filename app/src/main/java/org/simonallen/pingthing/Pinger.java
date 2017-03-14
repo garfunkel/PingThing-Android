@@ -21,6 +21,8 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by simon on 12/03/17.
@@ -32,17 +34,95 @@ enum PingStatus {
 	UNKNOWN
 }
 
+class PingResult {
+	public PingStatus statusCode;
+	public String status;
+	public float pingTime;
+
+	PingResult() {
+		statusCode = PingStatus.UNKNOWN;
+		status = "Unknown";
+		pingTime = -1;
+	}
+}
+
 interface StatusPinger {
 	void start();
 }
 
 class ServerStatusPinger extends Thread implements StatusPinger {
 	private static final String PING_CMD = "/system/bin/ping -c 1 %s";
+	private static final Pattern MS_PATTERN = Pattern.compile("time=([\\d\\.]+)\\s+ms");
 	private View mStatusBox;
 	private TextView mHostTextView;
 	private TextView mStatusTextView;
-	private PingStatus mStatusCode = PingStatus.UNKNOWN;
-	private String mStatus = "Unknown";
+	private PingResult mResult = new PingResult();
+
+	static PingResult ping(String host) {
+		Process process = null;
+		String out = "";
+		String err = "";
+		String line = "";
+		BufferedReader reader = null;
+		PingResult result = new PingResult();
+
+		try {
+			process = Runtime.getRuntime().exec(String.format(PING_CMD, host));
+			InputStream outStream = process.getInputStream();
+			InputStream errStream = process.getErrorStream();
+
+			switch (process.waitFor()) {
+				case 0:
+					result.statusCode = PingStatus.UP;
+
+					break;
+
+				case 1:
+					result.statusCode = PingStatus.DOWN;
+
+					break;
+
+				default:
+					result.statusCode = PingStatus.UNKNOWN;
+			}
+
+			// Read stdout into string.
+			reader = new BufferedReader(new InputStreamReader(outStream));
+
+			while ((line = reader.readLine()) != null) {
+				out += line + "\n";
+			}
+
+			out = out.trim();
+
+			// Read stderr into string.
+			reader = new BufferedReader(new InputStreamReader(errStream));
+
+			while ((line = reader.readLine()) != null) {
+				err += line + "\n";
+			}
+
+			err = err.trim();
+
+			if (err.isEmpty())
+				result.status = out;
+
+			else
+				result.status = err;
+
+			// Get ping time.
+			if (result.statusCode == PingStatus.UP) {
+				Matcher matcher = MS_PATTERN.matcher(out);
+
+				if (matcher.find()) {
+					result.pingTime = Float.parseFloat(matcher.group(1));
+				}
+			}
+		} catch (Exception e) {
+		}
+
+		return result;
+	}
 
 	ServerStatusPinger(View statusBox) {
 		mStatusBox = statusBox;
@@ -52,73 +132,24 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 
 	@Override
 	public void run() {
+		PingResult pingResult;
 		for (; ; ) {
-			Process process = null;
-			String out = "";
-			String err = "";
-			String line = "";
-			BufferedReader reader = null;
+			mResult = ping(mHostTextView.getText().toString());
 
-			try {
-				process = Runtime.getRuntime().exec(String.format(PING_CMD, mHostTextView.getText().toString()));
-				InputStream outStream = process.getInputStream();
-				InputStream errStream = process.getErrorStream();
+			mStatusBox.post(new Runnable() {
+				@Override
+				public void run() {
+					mStatusTextView.setText(mResult.status);
 
-				switch (process.waitFor()) {
-					case 0:
-						mStatusCode = PingStatus.UP;
-
-						break;
-
-					case 1:
-						mStatusCode = PingStatus.DOWN;
-
-						break;
-
-					default:
-						mStatusCode = PingStatus.UNKNOWN;
-				}
-
-				// Read stdout into string.
-				reader = new BufferedReader(new InputStreamReader(outStream));
-
-				while ((line = reader.readLine()) != null) {
-					out += line + " ";
-				}
-
-				out = out.trim();
-
-				// Read stderr into string.
-				reader = new BufferedReader(new InputStreamReader(errStream));
-
-				while ((line = reader.readLine()) != null) {
-					err += line + " ";
-				}
-
-				err = err.trim();
-
-				if (err.isEmpty())
-					mStatus = out;
-
-				else
-					mStatus = err;
-
-				mStatusBox.post(new Runnable() {
-					@Override
-					public void run() {
-						mStatusTextView.setText(mStatus);
-
-						if (mStatusCode == PingStatus.UP) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-						} else if (mStatusCode == PingStatus.DOWN) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-						} else {
-							mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
-						}
+					if (mResult.statusCode == PingStatus.UP) {
+						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
+					} else if (mResult.statusCode == PingStatus.DOWN) {
+						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
+					} else {
+						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
 					}
-				});
-			} catch (Exception e) {
-			}
+				}
+			});
 
 			try {
 				sleep(10000);
