@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -125,7 +123,9 @@ public class NewServerActivity extends AppCompatActivity {
 
 				intent.putExtra("name", ((EditText) findViewById(R.id.exittext_name)).getText().toString());
 				intent.putExtra("host", ((EditText) findViewById(R.id.edittext_host)).getText().toString());
-				//intent.putExtra("statusCodes", )
+				intent.putExtra("icmp", ((CheckBox) findViewById(R.id.icmp)).isChecked());
+				intent.putExtra("port", ((EditText) findViewById(R.id.port)).getText().toString());
+
 				setResult(RESULT_OK, intent);
 				finish();
 
