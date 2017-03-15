@@ -102,46 +102,20 @@ public class NewServerActivity extends AppCompatActivity {
 				if (!validateAll())
 					break;
 
-				item.setEnabled(false);
-				mName.setEnabled(false);
-				mHost.setEnabled(false);
-				mICMP.setEnabled(false);
-				mPort.setEnabled(false);
+				new Thread() {
+					private MenuItem mItem;
 
-				mPingProgressBar.setVisibility(View.VISIBLE);
+					@Override
+					public void run() {
+						pingTest(mItem);
+					}
 
-				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(mHost.getWindowToken(), 0);
+					void start(MenuItem item) {
+						mItem = item;
 
-				PingResult result = ServerStatusPinger.ping(mHost.getText().toString());
-
-				mStatus.setText(String.valueOf(result.statusCode.toString().toLowerCase()));
-
-				if (result.statusCode == PingStatus.UP)
-					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxGood));
-
-				else if (result.statusCode == PingStatus.DOWN)
-					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxBad));
-
-				else
-					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
-
-				if (result.pingTime >= 0)
-					((TextView) findViewById(R.id.time)).setText(String.valueOf(result.pingTime));
-
-				else
-					((TextView) findViewById(R.id.time)).setText("N/A");
-
-				((TextView) findViewById(R.id.statusDesc)).setText(result.status);
-
-				mPingProgressBar.setVisibility(View.GONE);
-				findViewById(R.id.linearLayout_test).setVisibility(View.VISIBLE);
-
-				item.setEnabled(true);
-				mName.setEnabled(true);
-				mHost.setEnabled(true);
-				mICMP.setEnabled(true);
-				mPort.setEnabled(true);
+						super.start();
+					}
+				}.start(item);
 
 				break;
 
@@ -225,5 +199,75 @@ public class NewServerActivity extends AppCompatActivity {
 		mPort.setError("Port is required, unless ICMP is used.");
 
 		return false;
+	}
+
+	private void pingTest(MenuItem item) {
+		class BeforePingRunnable implements Runnable {
+			private MenuItem mItem;
+
+			private BeforePingRunnable(MenuItem item) {
+				mItem = item;
+			}
+
+			@Override
+			public void run() {
+				mItem.setEnabled(false);
+				mName.setEnabled(false);
+				mHost.setEnabled(false);
+				mICMP.setEnabled(false);
+				mPort.setEnabled(false);
+
+				mTest.setVisibility(View.INVISIBLE);
+				mPingProgressBar.setVisibility(View.VISIBLE);
+
+				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(mHost.getWindowToken(), 0);
+			}
+		}
+
+		runOnUiThread(new BeforePingRunnable(item));
+
+		final PingResult result = ServerStatusPinger.ping(mHost.getText().toString());
+
+		class AfterPintRunnable implements Runnable {
+			private MenuItem mItem;
+
+			private AfterPintRunnable(MenuItem item) {
+				mItem = item;
+			}
+
+			@Override
+			public void run() {
+				mStatus.setText(String.valueOf(result.statusCode.toString().toLowerCase()));
+
+				if (result.statusCode == PingStatus.UP)
+					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxGood));
+
+				else if (result.statusCode == PingStatus.DOWN)
+					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxBad));
+
+				else
+					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
+
+				if (result.pingTime >= 0)
+					((TextView) findViewById(R.id.time)).setText(String.valueOf(result.pingTime));
+
+				else
+					((TextView) findViewById(R.id.time)).setText("N/A");
+
+				((TextView) findViewById(R.id.statusDesc)).setText(result.status);
+
+				mPingProgressBar.setVisibility(View.GONE);
+				findViewById(R.id.linearLayout_test).setVisibility(View.VISIBLE);
+
+				mItem.setEnabled(true);
+				mName.setEnabled(true);
+				mHost.setEnabled(true);
+				mICMP.setEnabled(true);
+				mPort.setEnabled(true);
+			}
+		}
+
+		runOnUiThread(new AfterPintRunnable(item));
 	}
 }
