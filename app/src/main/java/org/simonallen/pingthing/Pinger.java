@@ -19,14 +19,11 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-/**
- * Created by simon on 12/03/17.
- */
 
 enum PingStatus {
 	UP,
@@ -35,9 +32,9 @@ enum PingStatus {
 }
 
 class PingResult {
-	public PingStatus statusCode;
-	public String status;
-	public float pingTime;
+	PingStatus statusCode;
+	String status;
+	double pingTime;
 
 	PingResult() {
 		statusCode = PingStatus.UNKNOWN;
@@ -56,9 +53,10 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 	private View mStatusBox;
 	private TextView mHostTextView;
 	private TextView mStatusTextView;
+	private TextView mPortTextView;
 	private PingResult mResult = new PingResult();
 
-	static PingResult ping(String host) {
+	static PingResult pingICMP(String host) {
 		Process process = null;
 		String out = "";
 		String err = "";
@@ -124,17 +122,51 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 		return result;
 	}
 
+	static PingResult pingPort(String host, int port) {
+		PingResult result = new PingResult();
+
+		try {
+			SocketAddress sockaddr = new InetSocketAddress(host, port);
+			// Create an unbound socket
+			Socket sock = new Socket();
+
+			long startTime = System.nanoTime();
+
+			sock.connect(sockaddr, 10000);
+
+			long endTime = System.nanoTime();
+
+			result.statusCode = PingStatus.UP;
+			result.status = "OK";
+			result.pingTime = (endTime - startTime) / 1000000.0;
+		} catch (UnknownHostException e) {
+			result.statusCode = PingStatus.DOWN;
+			result.status = "Unknown host: " + e.getMessage();
+		} catch (Exception e) {
+			result.statusCode = PingStatus.DOWN;
+			result.status = "Cannot connect to host: " + e.getMessage();
+		}
+
+		return result;
+	}
+
 	ServerStatusPinger(View statusBox) {
 		mStatusBox = statusBox;
 		mHostTextView = (TextView) mStatusBox.findViewById(R.id.host);
 		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
+		mPortTextView = (TextView) mStatusBox.findViewById(R.id.port);
 	}
 
 	@Override
 	public void run() {
 		PingResult pingResult;
+
 		for (; ; ) {
-			mResult = ping(mHostTextView.getText().toString());
+			if (mPortTextView.getText().toString().equals("ICMP"))
+				mResult = pingICMP(mHostTextView.getText().toString());
+
+			else
+				mResult = pingPort(mHostTextView.getText().toString(), Integer.valueOf(mPortTextView.getText().toString()));
 
 			mStatusBox.post(new Runnable() {
 				@Override
@@ -175,35 +207,7 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	@Override
 	public void run() {
 		for (; ; ) {
-			Log.d("HERE", "HERE");
-			try {
-				SocketAddress sockaddr = new InetSocketAddress(mUrlTextView.getText().toString(), 80);
-				// Create an unbound socket
-				Socket sock = new Socket();
 
-				sock.connect(sockaddr, 10000);
-				mStatusCode = PingStatus.UP;
-				mStatus = "OK";
-			} catch (Exception e) {
-				mStatusCode = PingStatus.DOWN;
-				mStatus = e.getMessage();
-				Log.e("ERROR", e.toString());
-			}
-
-			mStatusBox.post(new Runnable() {
-				@Override
-				public void run() {
-					mStatusTextView.setText(mStatus);
-
-					if (mStatusCode == PingStatus.UP) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-					} else if (mStatusCode == PingStatus.DOWN) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-					} else {
-						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
-					}
-				}
-			});
 
 			try {
 				sleep(10000);
@@ -225,13 +229,13 @@ class Pinger extends Thread {
 		mContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
 			@Override
 			public void onChildViewAdded(View parent, View child) {
-				String type = (String) child.getTag();
+				String type = (String) child.getTag(R.id.status_box_tag_type);
 				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
 				StatusPinger statusPinger = null;
 
-				if (type.equals("SERVER")) {
+				if (type.equals(mContainer.getContext().getResources().getString(R.string.status_box_tag_type_server))) {
 					statusPinger = new ServerStatusPinger(child);
-				} else if (type.equals("WEBSITE")) {
+				} else if (type.equals(mContainer.getContext().getString(R.string.status_box_tag_type_website))) {
 					statusPinger = new WebsiteStatusPinger(child);
 				}
 

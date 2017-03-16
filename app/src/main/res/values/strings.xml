@@ -17,4 +17,6 @@
 	<string name="cancel">Cancel</string>
 	<string name="expected_http_status_codes">Expected HTTP Status codes</string>
 	<string name="select_expected_http_status_codes">Select expected status codes</string>
+	<string name="status_box_tag_type_server">server</string>
+	<string name="status_box_tag_type_website">website</string>
 </resources>

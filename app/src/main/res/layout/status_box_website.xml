@@ -10,9 +10,10 @@
 	android:elevation="4dp"
 	android:orientation="vertical"
 	android:padding="2.5dp"
-	android:tag="WEBSITE"
 	app:layout_flexGrow="1"
 	app:layout_minWidth="150dp">
+
+	<tag android:id="@+id/status_box_tag_type" android:value="@string/status_box_tag_type_website" />
 
 	<LinearLayout
 		android:layout_width="match_parent"

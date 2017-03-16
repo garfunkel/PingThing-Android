@@ -10,9 +10,10 @@
 	android:elevation="4dp"
 	android:orientation="vertical"
 	android:padding="2.5dp"
-	android:tag="SERVER"
 	app:layout_flexGrow="1"
 	app:layout_minWidth="150dp">
+	
+	<tag android:id="@+id/status_box_tag_type" android:value="@string/status_box_tag_type_server" />
 
 	<LinearLayout
 		android:layout_width="match_parent"
@@ -68,6 +69,16 @@
 				android:layout_height="wrap_content"
 				android:paddingEnd="5dp"
 				android:paddingRight="5dp"
+				android:text="Port:"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"
+				android:textStyle="bold"/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingEnd="5dp"
+				android:paddingRight="5dp"
 				android:text="Status:"
 				android:textAppearance="?android:textAppearanceSmall"
 				android:textColor="#000000"
@@ -81,6 +92,15 @@
 
 			<TextView
 				android:id="@+id/host"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:maxLines="1"
+				android:textAppearance="?android:textAppearanceSmall"
+				android:textColor="#000000"/>
+
+			<TextView
+				android:id="@+id/port"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:ellipsize="end"

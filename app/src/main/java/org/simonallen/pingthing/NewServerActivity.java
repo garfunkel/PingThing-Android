@@ -227,35 +227,43 @@ public class NewServerActivity extends AppCompatActivity {
 
 		runOnUiThread(new BeforePingRunnable(item));
 
-		final PingResult result = ServerStatusPinger.ping(mHost.getText().toString());
+		PingResult result = null;
+
+		if (mICMP.isChecked())
+			result = ServerStatusPinger.pingICMP(mHost.getText().toString());
+
+		else
+			result = ServerStatusPinger.pingPort(mHost.getText().toString(), Integer.valueOf(mPort.getText().toString()));
 
 		class AfterPintRunnable implements Runnable {
 			private MenuItem mItem;
+			private PingResult mResult;
 
-			private AfterPintRunnable(MenuItem item) {
+			private AfterPintRunnable(MenuItem item, PingResult result) {
 				mItem = item;
+				mResult = result;
 			}
 
 			@Override
 			public void run() {
-				mStatus.setText(String.valueOf(result.statusCode.toString().toLowerCase()));
+				mStatus.setText(String.valueOf(mResult.statusCode.toString().toLowerCase()));
 
-				if (result.statusCode == PingStatus.UP)
+				if (mResult.statusCode == PingStatus.UP)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxGood));
 
-				else if (result.statusCode == PingStatus.DOWN)
+				else if (mResult.statusCode == PingStatus.DOWN)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxBad));
 
 				else
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
 
-				if (result.pingTime >= 0)
-					((TextView) findViewById(R.id.time)).setText(String.valueOf(result.pingTime));
+				if (mResult.pingTime >= 0)
+					((TextView) findViewById(R.id.time)).setText(String.valueOf(mResult.pingTime));
 
 				else
 					((TextView) findViewById(R.id.time)).setText("N/A");
 
-				((TextView) findViewById(R.id.statusDesc)).setText(result.status);
+				((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
 
 				mPingProgressBar.setVisibility(View.GONE);
 				findViewById(R.id.linearLayout_test).setVisibility(View.VISIBLE);
@@ -268,6 +276,6 @@ public class NewServerActivity extends AppCompatActivity {
 			}
 		}
 
-		runOnUiThread(new AfterPintRunnable(item));
+		runOnUiThread(new AfterPintRunnable(item, result));
 	}
 }

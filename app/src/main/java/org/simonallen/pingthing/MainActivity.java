@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		FloatingActionButton newServerFab = (FloatingActionButton)findViewById(R.id.fab_add_server);
+		FloatingActionButton newServerFab = (FloatingActionButton) findViewById(R.id.fab_add_server);
 		newServerFab.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity
 
 				startActivityForResult(intent, mNewServerActivityCode);
 
-				FloatingActionMenu fab = (FloatingActionMenu)findViewById(R.id.fab);
+				FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.fab);
 				fab.close(true);
 			}
 		});
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity
 
 				startActivityForResult(intent, mNewWebsiteActivityCode);
 
-				FloatingActionMenu fab = (FloatingActionMenu)findViewById(R.id.fab);
+				FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.fab);
 				fab.close(true);
 			}
 		});
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
-		FlexboxLayout statusBoxContainer = (FlexboxLayout)findViewById(R.id.status_box_container);
+		FlexboxLayout statusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
 		mPingerNames = new ArrayList<>();
 		pinger = new Pinger(statusBoxContainer);
 
@@ -169,30 +169,32 @@ public class MainActivity extends AppCompatActivity
 
 	private void addServer(Bundle bundle) {
 		FlexboxLayout container = (FlexboxLayout) findViewById(R.id.status_box_container);
-		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_server, container, false);
 
-		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
-		((TextView)statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
+		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
+		((TextView) statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
 
-		String name = ((TextView) statusBox.findViewById(R.id.name)).getText().toString();
+		if (bundle.getBoolean("icmp"))
+			((TextView) statusBox.findViewById(R.id.port)).setText("ICMP");
 
-		mPingerNames.add(name);
+		else
+			((TextView) statusBox.findViewById(R.id.port)).setText(bundle.getString("port"));
+
+		mPingerNames.add(bundle.getString("name"));
 
 		container.addView(statusBox);
 	}
 
 	private void addWebsite(Bundle bundle) {
 		FlexboxLayout container = (FlexboxLayout) findViewById(R.id.status_box_container);
-		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_website, container, false);
 
-		((TextView)statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
-		((TextView)statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
+		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
+		((TextView) statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
 
-		String name = ((TextView) statusBox.findViewById(R.id.name)).getText().toString();
-
-		mPingerNames.add(name);
+		mPingerNames.add(bundle.getString("name"));
 
 		container.addView(statusBox);
 	}
