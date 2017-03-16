@@ -28,16 +28,18 @@ public class NewServerActivity extends AppCompatActivity {
 	private CheckBox mICMP;
 	private EditText mPort;
 	private TextView mStatus;
+	private TextView mTime;
 	private ProgressBar mPingProgressBar;
 	private LinearLayout mTest;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.activity_new_server);
+
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_new);
 		setSupportActionBar(toolbar);
-
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setDisplayShowHomeEnabled(true);
 
@@ -46,6 +48,7 @@ public class NewServerActivity extends AppCompatActivity {
 		mICMP = (CheckBox) findViewById(R.id.icmp);
 		mPort = (EditText) findViewById(R.id.port);
 		mStatus = (TextView) findViewById(R.id.status);
+		mTime = (TextView) findViewById(R.id.time);
 		mPingProgressBar = (ProgressBar) findViewById(R.id.progressBar_ping);
 		mTest = (LinearLayout) findViewById(R.id.linearLayout_test);
 
@@ -258,10 +261,10 @@ public class NewServerActivity extends AppCompatActivity {
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
 
 				if (mResult.pingTime >= 0)
-					((TextView) findViewById(R.id.time)).setText(String.valueOf(mResult.pingTime));
+					mTime.setText(String.valueOf(mResult.pingTime));
 
 				else
-					((TextView) findViewById(R.id.time)).setText("N/A");
+					mTime.setText("N/A");
 
 				((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
 

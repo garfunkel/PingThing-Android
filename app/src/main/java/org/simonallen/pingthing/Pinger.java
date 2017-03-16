@@ -159,8 +159,6 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 
 	@Override
 	public void run() {
-		PingResult pingResult;
-
 		for (; ; ) {
 			if (mPortTextView.getText().toString().equals("ICMP"))
 				mResult = pingICMP(mHostTextView.getText().toString());
@@ -193,21 +191,41 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 
 class WebsiteStatusPinger extends Thread implements StatusPinger {
 	private View mStatusBox;
-	private TextView mUrlTextView;
+	private TextView mURLTextView;
 	private TextView mStatusTextView;
-	private PingStatus mStatusCode = PingStatus.UNKNOWN;
-	private String mStatus = "Unknown";
+	private PingResult mResult = new PingResult();
+
+	static PingResult ping(String url) {
+		PingResult result = new PingResult();
+
+		return result;
+	}
 
 	WebsiteStatusPinger(View statusBox) {
 		mStatusBox = statusBox;
-		mUrlTextView = (TextView) mStatusBox.findViewById(R.id.url);
+		mURLTextView = (TextView) mStatusBox.findViewById(R.id.url);
 		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
 	}
 
 	@Override
 	public void run() {
 		for (; ; ) {
+			mResult = ping(mURLTextView.getText().toString());
 
+			mStatusBox.post(new Runnable() {
+				@Override
+				public void run() {
+					mStatusTextView.setText(mResult.status);
+
+					if (mResult.statusCode == PingStatus.UP) {
+						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
+					} else if (mResult.statusCode == PingStatus.DOWN) {
+						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
+					} else {
+						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
+					}
+				}
+			});
 
 			try {
 				sleep(10000);
