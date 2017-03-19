@@ -47,4 +47,8 @@
 		<item>505 (HTTP Version Not Supported)</item>
 		<item>511 (Network Authentication Required)</item>
 	</array>
+	<array name="protocols">
+		<item>http://</item>
+		<item>https://</item>
+	</array>
 </resources>

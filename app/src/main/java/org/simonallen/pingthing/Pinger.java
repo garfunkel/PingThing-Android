@@ -1,45 +1,48 @@
 package org.simonallen.pingthing;
 
-import android.text.Layout;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.flexbox.FlexboxLayout;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 enum PingStatus {
-	UP,
-	DOWN,
+	GOOD,
+	BAD,
 	UNKNOWN
 }
 
 class PingResult {
+	int rawStatusCode;
 	PingStatus statusCode;
 	String status;
 	double pingTime;
+	String data;
 
 	PingResult() {
+		rawStatusCode = -1;
 		statusCode = PingStatus.UNKNOWN;
 		status = "Unknown";
 		pingTime = -1;
+		data = "";
 	}
 }
 
@@ -69,14 +72,16 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 			InputStream outStream = process.getInputStream();
 			InputStream errStream = process.getErrorStream();
 
-			switch (process.waitFor()) {
+			result.rawStatusCode = process.waitFor();
+
+			switch (result.rawStatusCode) {
 				case 0:
-					result.statusCode = PingStatus.UP;
+					result.statusCode = PingStatus.GOOD;
 
 					break;
 
 				case 1:
-					result.statusCode = PingStatus.DOWN;
+					result.statusCode = PingStatus.BAD;
 
 					break;
 
@@ -109,7 +114,7 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 				result.status = err;
 
 			// Get ping time.
-			if (result.statusCode == PingStatus.UP) {
+			if (result.statusCode == PingStatus.GOOD) {
 				Matcher matcher = MS_PATTERN.matcher(out);
 
 				if (matcher.find()) {
@@ -136,14 +141,14 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 
 			long endTime = System.nanoTime();
 
-			result.statusCode = PingStatus.UP;
+			result.statusCode = PingStatus.GOOD;
 			result.status = "OK";
 			result.pingTime = (endTime - startTime) / 1000000.0;
 		} catch (UnknownHostException e) {
-			result.statusCode = PingStatus.DOWN;
+			result.statusCode = PingStatus.BAD;
 			result.status = "Unknown host: " + e.getMessage();
 		} catch (Exception e) {
-			result.statusCode = PingStatus.DOWN;
+			result.statusCode = PingStatus.BAD;
 			result.status = "Cannot connect to host: " + e.getMessage();
 		}
 
@@ -171,9 +176,9 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 				public void run() {
 					mStatusTextView.setText(mResult.status);
 
-					if (mResult.statusCode == PingStatus.UP) {
+					if (mResult.statusCode == PingStatus.GOOD) {
 						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-					} else if (mResult.statusCode == PingStatus.DOWN) {
+					} else if (mResult.statusCode == PingStatus.BAD) {
 						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
 					} else {
 						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
@@ -194,9 +199,94 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	private TextView mURLTextView;
 	private TextView mStatusTextView;
 	private PingResult mResult = new PingResult();
+	private final static SparseArray<String> HTTPStatusCodeMap = new SparseArray<String>();
+	static {
+		HTTPStatusCodeMap.append(100, "Continue");
+		HTTPStatusCodeMap.append(101, "Switching Protocol");
+		HTTPStatusCodeMap.append(200, "OK");
+		HTTPStatusCodeMap.append(201, "Created");
+		HTTPStatusCodeMap.append(202, "Accepted");
+		HTTPStatusCodeMap.append(203, "Non-Authoritative Information");
+		HTTPStatusCodeMap.append(204, "No Content");
+		HTTPStatusCodeMap.append(205, "Reset Content");
+		HTTPStatusCodeMap.append(206, "Partial Content");
+		HTTPStatusCodeMap.append(300, "Multiple Choices");
+		HTTPStatusCodeMap.append(301, "Moved Permanently");
+		HTTPStatusCodeMap.append(302, "Found");
+		HTTPStatusCodeMap.append(303, "See Other");
+		HTTPStatusCodeMap.append(304, "Not Modified");
+		HTTPStatusCodeMap.append(307, "Temporary Redirect");
+		HTTPStatusCodeMap.append(308, "Permanent Redirect");
+		HTTPStatusCodeMap.append(400, "Bad Request");
+		HTTPStatusCodeMap.append(401, "Unauthorized");
+		HTTPStatusCodeMap.append(403, "Forbidden");
+		HTTPStatusCodeMap.append(404, "Not Found");
+		HTTPStatusCodeMap.append(405, "Method Not Allowed");
+		HTTPStatusCodeMap.append(406, "Not Acceptable");
+		HTTPStatusCodeMap.append(407, "Proxy Authentication Required");
+		HTTPStatusCodeMap.append(408, "Request Timeout");
+		HTTPStatusCodeMap.append(409, "Conflict");
+		HTTPStatusCodeMap.append(410, "Gone");
+		HTTPStatusCodeMap.append(411, "Length Required");
+		HTTPStatusCodeMap.append(412, "Precondition Failed");
+		HTTPStatusCodeMap.append(413, "Payload Too Large");
+		HTTPStatusCodeMap.append(414, "URI Too Long");
+		HTTPStatusCodeMap.append(415, "Unsupported Media Type");
+		HTTPStatusCodeMap.append(416, "Range Not Satisfiable");
+		HTTPStatusCodeMap.append(417, "Expectation Failed");
+		HTTPStatusCodeMap.append(426, "Upgrade Required");
+		HTTPStatusCodeMap.append(428, "Precondition Required");
+		HTTPStatusCodeMap.append(429, "Too Many Requests");
+		HTTPStatusCodeMap.append(431, "Request Header Fields Too Large");
+		HTTPStatusCodeMap.append(451, "Unavailable For Legal Reasons");
+		HTTPStatusCodeMap.append(500, "Internal Server Error");
+		HTTPStatusCodeMap.append(501, "Not Implemented");
+		HTTPStatusCodeMap.append(502, "Bad Gateway");
+		HTTPStatusCodeMap.append(503, "Service Unavailable");
+		HTTPStatusCodeMap.append(504, "Gateway Timeout");
+		HTTPStatusCodeMap.append(505, "HTTP Version Not Supported");
+		HTTPStatusCodeMap.append(511, "Network Authentication Required");
+	}
 
-	static PingResult ping(String url) {
+	static PingResult ping(String url, boolean followRedirects, boolean followSSLRedirects, int[] expectedStatuses) {
 		PingResult result = new PingResult();
+		OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+
+		clientBuilder.followRedirects(followRedirects);
+		clientBuilder.followSslRedirects(followSSLRedirects);
+		OkHttpClient client = clientBuilder.build();
+
+		try {
+			Request request = new Request.Builder().url(url).build();
+			Response response;
+
+			long startTime = System.nanoTime();
+
+			response = client.newCall(request).execute();
+
+			result.rawStatusCode = response.code();
+			result.statusCode = PingStatus.BAD;
+
+			for (int code : expectedStatuses) {
+				if (result.rawStatusCode == code)
+					result.statusCode = PingStatus.GOOD;
+			}
+
+			if (response.message() != null && !response.message().isEmpty())
+				result.status = String.format("%s (%s)", String.valueOf(response.code()), response.message());
+
+			else if (HTTPStatusCodeMap.get(response.code()) != null)
+				result.status = String.format("%s (%s)", String.valueOf(response.code()), HTTPStatusCodeMap.get(response.code()));
+
+			else
+				result.status = "Invalid HTTP response code.";
+
+			result.data = response.body().toString();
+			result.pingTime = (System.nanoTime() - startTime) / 1000000.0;
+		} catch (Exception e) {
+			result.status = e.getMessage();
+			result.statusCode = PingStatus.BAD;
+		}
 
 		return result;
 	}
@@ -210,16 +300,16 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	@Override
 	public void run() {
 		for (; ; ) {
-			mResult = ping(mURLTextView.getText().toString());
+			//mResult = ping(mURLTextView.getText().toString(), );
 
 			mStatusBox.post(new Runnable() {
 				@Override
 				public void run() {
 					mStatusTextView.setText(mResult.status);
 
-					if (mResult.statusCode == PingStatus.UP) {
+					if (mResult.statusCode == PingStatus.GOOD) {
 						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-					} else if (mResult.statusCode == PingStatus.DOWN) {
+					} else if (mResult.statusCode == PingStatus.BAD) {
 						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
 					} else {
 						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);

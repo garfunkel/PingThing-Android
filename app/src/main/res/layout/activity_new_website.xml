@@ -21,132 +21,219 @@
 			<include layout="@layout/toolbar_new"/>
 		</android.support.design.widget.AppBarLayout>
 
-		<LinearLayout
+		<ScrollView
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:paddingLeft="24dp"
-			android:paddingRight="24dp">
-
-			<android.support.design.widget.TextInputLayout
-				android:id="@+id/layout_name"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_marginBottom="8dp"
-				android:layout_marginTop="8dp">
-
-				<EditText
-					android:id="@+id/exittext_name"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/name"
-					android:inputType="text"/>
-			</android.support.design.widget.TextInputLayout>
-
-			<android.support.design.widget.TextInputLayout
-				android:id="@+id/layout_url"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_marginBottom="8dp"
-				android:layout_marginTop="8dp">
-
-				<EditText
-					android:id="@+id/edittext_url"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/url"
-					android:inputType="textUri"/>
-			</android.support.design.widget.TextInputLayout>
-
-			<android.support.design.widget.TextInputLayout
-				android:id="@+id/layout_interval"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_marginBottom="8dp"
-				android:layout_marginTop="8dp">
-
-				<EditText
-					android:id="@+id/edittext_status_codes"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/expected_http_status_codes"/>
-			</android.support.design.widget.TextInputLayout>
-
-		</LinearLayout>
-
-		<ProgressBar
-			xmlns:android="http://schemas.android.com/apk/res/android"
-			android:id="@+id/progressBar_ping"
-			android:visibility="gone"
-			style="?android:attr/progressBarStyleHorizontal"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:indeterminate="true"/>
-
-		<LinearLayout
-			android:id="@+id/linearLayout_test"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:visibility="invisible">
+			android:layout_height="wrap_content">
 
 			<LinearLayout
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:orientation="horizontal">
+				android:orientation="vertical"
+				android:paddingLeft="24dp"
+				android:paddingRight="24dp">
+
+				<android.support.design.widget.TextInputLayout
+					android:id="@+id/layout_name"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_marginBottom="8dp"
+					android:layout_marginTop="8dp">
+
+					<EditText
+						android:id="@+id/exittext_name"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:hint="@string/name"
+						android:inputType="text"/>
+				</android.support.design.widget.TextInputLayout>
 
 				<LinearLayout
-					android:layout_width="0dp"
-					android:layout_height="match_parent"
-					android:layout_weight="1"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
 					android:orientation="horizontal">
 
-					<TextView
+					<LinearLayout
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
-						android:text="Status:"
-						android:textStyle="bold"/>
+						android:layout_marginEnd="24dp"
+						android:layout_marginRight="24dp"
+						android:orientation="vertical">
 
-					<TextView
-						android:id="@+id/status"
+						<CheckBox
+							android:id="@+id/checkBox_followRedirects"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:checked="true"
+							android:text="Follow 3xx redirects"/>
+
+						<CheckBox
+							android:id="@+id/checkBox_followSSLRedirects"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:checked="true"
+							android:text="Follow SSL redirects"/>
+
+					</LinearLayout>
+
+					<RadioGroup
+						android:id="@+id/radioGroup_protocol"
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
-						android:layout_marginLeft="5dp"
-						android:layout_marginStart="5dp"/>
+						android:orientation="vertical">
+
+						<RadioButton
+							android:id="@+id/radioButton_http"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:checked="true"
+							android:text="HTTP"/>
+
+						<RadioButton
+							android:id="@+id/radioButton_https"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="HTTPS"/>
+					</RadioGroup>
+
 				</LinearLayout>
 
 				<LinearLayout
-					android:layout_width="0dp"
-					android:layout_height="match_parent"
-					android:layout_weight="1"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
 					android:orientation="horizontal">
 
-					<TextView
+					<android.support.design.widget.TextInputLayout
+						android:id="@+id/layout_protocol"
 						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="Time:"
-						android:textStyle="bold"/>
+						android:layout_height="match_parent"
+						android:layout_marginBottom="8dp"
+						android:layout_marginTop="8dp">
 
-					<TextView
-						android:id="@+id/time"
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_marginLeft="5dp"
-						android:layout_marginStart="5dp"/>
+						<EditText
+							android:id="@+id/edittext_protocol"
+							android:layout_width="wrap_content"
+							android:layout_height="match_parent"
+							android:enabled="false"
+							android:text="http://"/>
+					</android.support.design.widget.TextInputLayout>
+
+					<android.support.design.widget.TextInputLayout
+						android:id="@+id/layout_url"
+						android:layout_width="match_parent"
+						android:layout_height="match_parent"
+						android:layout_marginBottom="8dp"
+						android:layout_marginTop="8dp">
+
+						<EditText
+							android:id="@+id/edittext_url"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:hint="@string/url"
+							android:inputType="textUri"/>
+					</android.support.design.widget.TextInputLayout>
+
 				</LinearLayout>
 
+				<android.support.design.widget.TextInputLayout
+					android:id="@+id/layout_interval"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_marginBottom="8dp"
+					android:layout_marginTop="8dp">
+
+					<EditText
+						android:id="@+id/edittext_status_codes"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:hint="@string/expected_http_status_codes"/>
+				</android.support.design.widget.TextInputLayout>
+
+				<ProgressBar
+					xmlns:android="http://schemas.android.com/apk/res/android"
+					android:id="@+id/progressBar_ping"
+					style="?android:attr/progressBarStyleHorizontal"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:indeterminate="true"
+					android:visibility="gone"/>
+
+				<LinearLayout
+					android:id="@+id/linearLayout_test"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:orientation="vertical"
+					android:visibility="invisible">
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="horizontal">
+
+						<LinearLayout
+							android:layout_width="0dp"
+							android:layout_height="match_parent"
+							android:layout_weight="1"
+							android:orientation="horizontal">
+
+							<TextView
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="Status:"
+								android:textStyle="bold"/>
+
+							<TextView
+								android:id="@+id/status"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:layout_marginLeft="5dp"
+								android:layout_marginStart="5dp"/>
+						</LinearLayout>
+
+						<LinearLayout
+							android:layout_width="0dp"
+							android:layout_height="match_parent"
+							android:layout_weight="1"
+							android:orientation="horizontal">
+
+							<TextView
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="Time (ms):"
+								android:textStyle="bold"/>
+
+							<TextView
+								android:id="@+id/time"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:layout_marginLeft="5dp"
+								android:layout_marginStart="5dp"/>
+						</LinearLayout>
+
+					</LinearLayout>
+
+					<View
+						android:layout_width="match_parent"
+						android:layout_height="1dp"
+						android:background="@color/monitorListBackground"/>
+
+					<TextView
+						android:id="@+id/statusDesc"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"/>
+
+					<View
+						android:layout_width="match_parent"
+						android:layout_height="1dp"
+						android:background="@color/monitorListBackground"/>
+
+					<WebView
+						android:id="@+id/web"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"/>
+
+				</LinearLayout>
 			</LinearLayout>
-
-			<View
-				android:layout_width="match_parent"
-				android:layout_height="1dp"
-				android:background="@color/monitorListBackground"/>
-
-			<TextView
-				android:id="@+id/statusDesc"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"/>
-		</LinearLayout>
+		</ScrollView>
 	</LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -3,6 +3,7 @@ package org.simonallen.pingthing;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.IdRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -17,11 +18,19 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 public class NewWebsiteActivity extends AppCompatActivity {
@@ -29,12 +38,21 @@ public class NewWebsiteActivity extends AppCompatActivity {
 	private boolean[] mSelectedItems;
 	private boolean[] mUnconfirmedSelectedItems;
 	private EditText mName;
+	private CheckBox mFollowRedirects;
+	private CheckBox mFollowSSLRedirects;
+	private RadioGroup mProtocol;
+	private RadioButton mProtocolHTTP;
+	private RadioButton mProtocolHTTPS;
+	private EditText mProtocolText;
 	private EditText mURL;
 	private EditText mExpectedStatusCodes;
 	private TextView mStatus;
 	private TextView mTime;
+	private WebView mWeb;
 	private ProgressBar mPingProgressBar;
 	private LinearLayout mTest;
+	private int[] mExpectedStatusIntCodes;
+	private NumberFormat mMsFormatter = new DecimalFormat("#0.00");
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +65,18 @@ public class NewWebsiteActivity extends AppCompatActivity {
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-		mName = (EditText)findViewById(R.id.exittext_name);
-		mURL = (EditText)findViewById(R.id.edittext_url);
-		mExpectedStatusCodes = (EditText)findViewById(R.id.edittext_status_codes);
+		mName = (EditText) findViewById(R.id.exittext_name);
+		mFollowRedirects = (CheckBox) findViewById(R.id.checkBox_followRedirects);
+		mFollowSSLRedirects = (CheckBox) findViewById(R.id.checkBox_followSSLRedirects);
+		mProtocol = (RadioGroup)findViewById(R.id.radioGroup_protocol);
+		mProtocolHTTP = (RadioButton)findViewById(R.id.radioButton_http);
+		mProtocolHTTPS = (RadioButton)findViewById(R.id.radioButton_https);
+		mProtocolText = (EditText) findViewById(R.id.edittext_protocol);
+		mURL = (EditText) findViewById(R.id.edittext_url);
+		mExpectedStatusCodes = (EditText) findViewById(R.id.edittext_status_codes);
 		mStatus = (TextView) findViewById(R.id.status);
 		mTime = (TextView) findViewById(R.id.time);
+		mWeb = (WebView) findViewById(R.id.web);
 		mPingProgressBar = (ProgressBar) findViewById(R.id.progressBar_ping);
 		mTest = (LinearLayout) findViewById(R.id.linearLayout_test);
 		mAllStatusCodes = getResources().getStringArray(R.array.http_status_codes);
@@ -126,6 +151,27 @@ public class NewWebsiteActivity extends AppCompatActivity {
 			public void onDestroyActionMode(ActionMode actionMode) {
 			}
 		});
+
+		mProtocol.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+				if (checkedId == R.id.radioButton_http) {
+					mProtocolText.setText("http://");
+				} else {
+					mProtocolText.setText("https://");
+				}
+			}
+		});
+
+		mWeb.setWebChromeClient(new WebChromeClient());
+		mWeb.setWebViewClient(new WebViewClient());
+		mWeb.getSettings().setJavaScriptEnabled(true);
+		mWeb.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				return true;
+			}
+		});
 	}
 
 	@Override
@@ -166,7 +212,7 @@ public class NewWebsiteActivity extends AppCompatActivity {
 					break;
 
 				intent.putExtra("name", ((EditText) findViewById(R.id.exittext_name)).getText().toString());
-				intent.putExtra("url", ((EditText) findViewById(R.id.edittext_url)).getText().toString());
+				intent.putExtra("url", ((EditText) findViewById(R.id.edittext_protocol)).getText().toString() + ((EditText) findViewById(R.id.edittext_url)).getText().toString());
 				intent.putExtra("expectedStatusCodes", ((EditText) findViewById(R.id.edittext_status_codes)).getText().toString());
 
 				setResult(RESULT_OK, intent);
@@ -247,20 +293,25 @@ public class NewWebsiteActivity extends AppCompatActivity {
 			public void run() {
 				mItem.setEnabled(false);
 				mName.setEnabled(false);
+				mFollowRedirects.setEnabled(false);
+				mFollowSSLRedirects.setEnabled(false);
+				mProtocolHTTP.setEnabled(false);
+				mProtocolHTTPS.setEnabled(false);
 				mURL.setEnabled(false);
 				mExpectedStatusCodes.setEnabled(false);
 
 				mTest.setVisibility(View.INVISIBLE);
 				mPingProgressBar.setVisibility(View.VISIBLE);
-
 				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mURL.getWindowToken(), 0);
+
+				mWeb.loadUrl(mProtocolText.getText().toString() + mURL.getText().toString());
 			}
 		}
 
 		runOnUiThread(new BeforePingRunnable(item));
 
-		PingResult result = WebsiteStatusPinger.ping(mURL.getText().toString());
+		PingResult result = WebsiteStatusPinger.ping(mProtocolText.getText().toString() + mURL.getText().toString(), mFollowRedirects.isChecked(), mFollowSSLRedirects.isChecked(), mExpectedStatusIntCodes);
 
 		class AfterPintRunnable implements Runnable {
 			private MenuItem mItem;
@@ -275,28 +326,36 @@ public class NewWebsiteActivity extends AppCompatActivity {
 			public void run() {
 				mStatus.setText(String.valueOf(mResult.statusCode.toString().toLowerCase()));
 
-				if (mResult.statusCode == PingStatus.UP)
+				if (mResult.statusCode == PingStatus.GOOD)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxGood));
 
-				else if (mResult.statusCode == PingStatus.DOWN)
+				else if (mResult.statusCode == PingStatus.BAD)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxBad));
 
 				else
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
 
 				if (mResult.pingTime >= 0)
-					mTime.setText(String.valueOf(mResult.pingTime));
+					mTime.setText(String.valueOf(mMsFormatter.format(mResult.pingTime)));
 
 				else
 					mTime.setText("N/A");
 
-				((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
+				if (mResult.statusCode == PingStatus.GOOD) {
+					((TextView) findViewById(R.id.statusDesc)).setText(mResult.data);
+				} else {
+					((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
+				}
 
 				mPingProgressBar.setVisibility(View.GONE);
 				findViewById(R.id.linearLayout_test).setVisibility(View.VISIBLE);
 
 				mItem.setEnabled(true);
 				mName.setEnabled(true);
+				mFollowRedirects.setEnabled(true);
+				mFollowSSLRedirects.setEnabled(true);
+				mProtocolHTTP.setEnabled(true);
+				mProtocolHTTPS.setEnabled(true);
 				mURL.setEnabled(true);
 				mExpectedStatusCodes.setEnabled(true);
 			}
@@ -343,6 +402,15 @@ public class NewWebsiteActivity extends AppCompatActivity {
 					value = value.substring(0, value.length() - 2);
 
 				et.setText(value);
+
+				String[] stringCodes = mExpectedStatusCodes.getText().toString().split(",");
+
+				mExpectedStatusIntCodes = new int[stringCodes.length];
+
+				for (int i = 0; i < stringCodes.length; i++) {
+					mExpectedStatusIntCodes[i] = Integer.parseInt(stringCodes[i].trim());
+				}
+
 				mExpectedStatusCodes.setError(null);
 			}
 		});

@@ -20,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 public class NewServerActivity extends AppCompatActivity {
@@ -31,6 +33,7 @@ public class NewServerActivity extends AppCompatActivity {
 	private TextView mTime;
 	private ProgressBar mPingProgressBar;
 	private LinearLayout mTest;
+	NumberFormat mMsFormatter = new DecimalFormat("#0.00");
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -251,17 +254,17 @@ public class NewServerActivity extends AppCompatActivity {
 			public void run() {
 				mStatus.setText(String.valueOf(mResult.statusCode.toString().toLowerCase()));
 
-				if (mResult.statusCode == PingStatus.UP)
+				if (mResult.statusCode == PingStatus.GOOD)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxGood));
 
-				else if (mResult.statusCode == PingStatus.DOWN)
+				else if (mResult.statusCode == PingStatus.BAD)
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxBad));
 
 				else
 					mStatus.setTextColor(ContextCompat.getColor(mStatus.getContext(), R.color.statusBoxUnknown));
 
 				if (mResult.pingTime >= 0)
-					mTime.setText(String.valueOf(mResult.pingTime));
+					mTime.setText(String.valueOf(mMsFormatter.format(mResult.pingTime)));
 
 				else
 					mTime.setText("N/A");
