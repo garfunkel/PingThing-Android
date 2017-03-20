@@ -80,13 +80,8 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 
 					break;
 
-				case 1:
-					result.statusCode = PingStatus.BAD;
-
-					break;
-
 				default:
-					result.statusCode = PingStatus.UNKNOWN;
+					result.statusCode = PingStatus.BAD;
 			}
 
 			// Read stdout into string.
@@ -174,7 +169,7 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 			mStatusBox.post(new Runnable() {
 				@Override
 				public void run() {
-					mStatusTextView.setText(mResult.status);
+					mStatusTextView.setText(mResult.status.replace("\n", " "));
 
 					if (mResult.statusCode == PingStatus.GOOD) {
 						mStatusBox.setBackgroundResource(R.color.statusBoxGood);

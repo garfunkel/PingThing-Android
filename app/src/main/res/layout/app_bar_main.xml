@@ -25,40 +25,4 @@
 	<include
 		layout="@layout/content_main"/>
 
-	<com.github.clans.fab.FloatingActionMenu
-		android:id="@+id/fab"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="bottom|end"
-		android:layout_margin="@dimen/fab_margin"
-		android:elevation="4dp"
-		android:src="@drawable/ic_add_white_24dp"
-		app:menu_colorNormal="@color/colorAccent"
-		app:menu_colorPressed="@color/colorAccent"
-		app:menu_labels_colorNormal="?attr/colorBackgroundFloating"
-		app:menu_labels_colorPressed="@android:color/darker_gray"
-		app:menu_labels_textColor="?android:attr/textColorPrimary">
-
-		<com.github.clans.fab.FloatingActionButton
-			android:id="@+id/fab_add_server"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:src="@drawable/ic_storage_white_24dp"
-			app:fab_colorNormal="@color/colorAccent"
-			app:fab_colorPressed="@color/colorAccent"
-			app:fab_label="Add server"
-			app:fab_size="mini"/>
-
-		<com.github.clans.fab.FloatingActionButton
-			android:id="@+id/fab_add_website"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:src="@drawable/ic_web_white_24dp"
-			app:fab_colorNormal="@color/colorAccent"
-			app:fab_colorPressed="@color/colorAccent"
-			app:fab_label="Add website"
-			app:fab_size="mini"/>
-
-	</com.github.clans.fab.FloatingActionMenu>
-
 </android.support.design.widget.CoordinatorLayout>

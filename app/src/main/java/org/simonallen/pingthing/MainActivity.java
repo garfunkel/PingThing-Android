@@ -1,12 +1,8 @@
 package org.simonallen.pingthing;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Layout;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,12 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.github.clans.fab.FloatingActionMenu;
-import com.github.clans.fab.FloatingActionButton;
 import com.google.android.flexbox.FlexboxLayout;
 
 import java.util.ArrayList;
@@ -39,34 +31,6 @@ public class MainActivity extends AppCompatActivity
 		setContentView(R.layout.activity_main);
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
-
-		FloatingActionButton newServerFab = (FloatingActionButton) findViewById(R.id.fab_add_server);
-		newServerFab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Intent intent = new Intent(MainActivity.this, NewServerActivity.class);
-				intent.putExtra("existingNames", mPingerNames);
-
-				startActivityForResult(intent, mNewServerActivityCode);
-
-				FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.fab);
-				fab.close(true);
-			}
-		});
-
-		newServerFab = (FloatingActionButton) findViewById(R.id.fab_add_website);
-		newServerFab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Intent intent = new Intent(MainActivity.this, NewWebsiteActivity.class);
-				intent.putExtra("existingNames", mPingerNames);
-
-				startActivityForResult(intent, mNewWebsiteActivityCode);
-
-				FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.fab);
-				fab.close(true);
-			}
-		});
 
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -113,13 +77,21 @@ public class MainActivity extends AppCompatActivity
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 
-		//noinspection SimplifiableIfStatement
-		if (id == R.id.action_settings) {
+		if (id == R.id.action_new_server) {
+			Intent intent = new Intent(MainActivity.this, NewServerActivity.class);
+			intent.putExtra("existingNames", mPingerNames);
+
+			startActivityForResult(intent, mNewServerActivityCode);
+
+			return true;
+		} else if (id == R.id.action_new_website) {
+			Intent intent = new Intent(MainActivity.this, NewWebsiteActivity.class);
+			intent.putExtra("existingNames", mPingerNames);
+
+			startActivityForResult(intent, mNewWebsiteActivityCode);
+
 			return true;
 		}
 
