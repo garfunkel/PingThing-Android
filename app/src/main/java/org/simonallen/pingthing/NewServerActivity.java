@@ -130,7 +130,12 @@ public class NewServerActivity extends AppCompatActivity {
 				intent.putExtra("name", ((EditText) findViewById(R.id.exittext_name)).getText().toString());
 				intent.putExtra("host", ((EditText) findViewById(R.id.edittext_host)).getText().toString());
 				intent.putExtra("icmp", ((CheckBox) findViewById(R.id.icmp)).isChecked());
-				intent.putExtra("port", ((EditText) findViewById(R.id.port)).getText().toString());
+
+				if (intent.getExtras().getBoolean("icmp"))
+					intent.putExtra("port", -1);
+
+				else
+					intent.putExtra("port", Integer.parseInt(((EditText) findViewById(R.id.port)).getText().toString()));
 
 				setResult(RESULT_OK, intent);
 				finish();
@@ -278,7 +283,9 @@ public class NewServerActivity extends AppCompatActivity {
 				mName.setEnabled(true);
 				mHost.setEnabled(true);
 				mICMP.setEnabled(true);
-				mPort.setEnabled(true);
+
+				if (!mICMP.isChecked())
+					mPort.setEnabled(true);
 			}
 		}
 

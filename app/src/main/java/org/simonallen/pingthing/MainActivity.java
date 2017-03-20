@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -90,7 +91,6 @@ public class MainActivity extends AppCompatActivity
 		FlexboxLayout statusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
 		mPingerNames = new ArrayList<>();
 		pinger = new Pinger(statusBoxContainer);
-
 		pinger.start();
 	}
 
@@ -173,6 +173,11 @@ public class MainActivity extends AppCompatActivity
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_server, container, false);
 
+		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
+		statusBox.setTag(R.id.status_box_tag_host, bundle.getString("host"));
+		statusBox.setTag(R.id.status_box_tag_icmp, bundle.getBoolean("icmp"));
+		statusBox.setTag(R.id.status_box_tag_port, bundle.getInt("port"));
+
 		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView) statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
 
@@ -180,7 +185,7 @@ public class MainActivity extends AppCompatActivity
 			((TextView) statusBox.findViewById(R.id.port)).setText("ICMP");
 
 		else
-			((TextView) statusBox.findViewById(R.id.port)).setText(bundle.getString("port"));
+			((TextView) statusBox.findViewById(R.id.port)).setText(String.valueOf(bundle.getInt("port")));
 
 		mPingerNames.add(bundle.getString("name"));
 
@@ -192,8 +197,26 @@ public class MainActivity extends AppCompatActivity
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_website, container, false);
 
+		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
+		statusBox.setTag(R.id.status_box_tag_follow_redirects, bundle.getBoolean("followRedirects"));
+		statusBox.setTag(R.id.status_box_tag_follow_ssl_redirects, bundle.getBoolean("followSSLRedirects"));
+		statusBox.setTag(R.id.status_box_tag_url, bundle.getString("url"));
+		statusBox.setTag(R.id.status_box_tag_expected_status_codes, bundle.getIntArray("expectedStatusCodes"));
+
 		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView) statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
+
+		StringBuilder stringBuilder = new StringBuilder();
+		int[] statusCodes = bundle.getIntArray("expectedStatusCodes");
+
+		if (statusCodes != null) {
+			for (int statusCode : statusCodes) {
+				stringBuilder.append(statusCode);
+				stringBuilder.append(", ");
+			}
+		}
+
+		((TextView) statusBox.findViewById(R.id.textView_expectedHTTPStatusCodes)).setText(stringBuilder.toString().replaceFirst(", $", ""));
 
 		mPingerNames.add(bundle.getString("name"));
 

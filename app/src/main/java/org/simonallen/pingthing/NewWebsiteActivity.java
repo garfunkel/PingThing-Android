@@ -212,8 +212,10 @@ public class NewWebsiteActivity extends AppCompatActivity {
 					break;
 
 				intent.putExtra("name", ((EditText) findViewById(R.id.exittext_name)).getText().toString());
+				intent.putExtra("followRedirects", ((CheckBox)findViewById(R.id.checkBox_followRedirects)).isChecked());
+				intent.putExtra("followSSLRedirects", ((CheckBox)findViewById(R.id.checkBox_followSSLRedirects)).isChecked());
 				intent.putExtra("url", ((EditText) findViewById(R.id.edittext_protocol)).getText().toString() + ((EditText) findViewById(R.id.edittext_url)).getText().toString());
-				intent.putExtra("expectedStatusCodes", ((EditText) findViewById(R.id.edittext_status_codes)).getText().toString());
+				intent.putExtra("expectedStatusCodes", mExpectedStatusIntCodes);
 
 				setResult(RESULT_OK, intent);
 				finish();
@@ -341,11 +343,7 @@ public class NewWebsiteActivity extends AppCompatActivity {
 				else
 					mTime.setText("N/A");
 
-				if (mResult.statusCode == PingStatus.GOOD) {
-					((TextView) findViewById(R.id.statusDesc)).setText(mResult.data);
-				} else {
-					((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
-				}
+				((TextView) findViewById(R.id.statusDesc)).setText(mResult.status);
 
 				mPingProgressBar.setVisibility(View.GONE);
 				findViewById(R.id.linearLayout_test).setVisibility(View.VISIBLE);

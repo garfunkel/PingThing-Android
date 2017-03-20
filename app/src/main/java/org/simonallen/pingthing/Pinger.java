@@ -197,9 +197,11 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 class WebsiteStatusPinger extends Thread implements StatusPinger {
 	private View mStatusBox;
 	private TextView mURLTextView;
+	private TextView mExpectedStatusTextView;
 	private TextView mStatusTextView;
 	private PingResult mResult = new PingResult();
 	private final static SparseArray<String> HTTPStatusCodeMap = new SparseArray<String>();
+
 	static {
 		HTTPStatusCodeMap.append(100, "Continue");
 		HTTPStatusCodeMap.append(101, "Switching Protocol");
@@ -294,13 +296,14 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	WebsiteStatusPinger(View statusBox) {
 		mStatusBox = statusBox;
 		mURLTextView = (TextView) mStatusBox.findViewById(R.id.url);
+		mExpectedStatusTextView = (TextView) mStatusBox.findViewById(R.id.textView_expectedHTTPStatusCodes);
 		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
 	}
 
 	@Override
 	public void run() {
 		for (; ; ) {
-			//mResult = ping(mURLTextView.getText().toString(), );
+			mResult = ping((String)mStatusBox.getTag(R.id.status_box_tag_url), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_redirects), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_ssl_redirects), (int[])mStatusBox.getTag(R.id.status_box_tag_expected_status_codes));
 
 			mStatusBox.post(new Runnable() {
 				@Override

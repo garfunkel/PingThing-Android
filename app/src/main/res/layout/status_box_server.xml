@@ -12,8 +12,22 @@
 	android:padding="2.5dp"
 	app:layout_flexGrow="1"
 	app:layout_minWidth="150dp">
-	
-	<tag android:id="@+id/status_box_tag_type" android:value="@string/status_box_tag_type_server" />
+
+	<tag
+		android:id="@+id/status_box_tag_type"
+		android:value="@string/status_box_tag_type_server"/>
+
+	<tag
+		android:id="@+id/status_box_tag_name"/>
+
+	<tag
+		android:id="@+id/status_box_tag_host"/>
+
+	<tag
+		android:id="@+id/status_box_tag_icmp"/>
+
+	<tag
+		android:id="@+id/status_box_tag_port"/>
 
 	<LinearLayout
 		android:layout_width="match_parent"

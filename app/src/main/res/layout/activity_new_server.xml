@@ -21,7 +21,7 @@
 			<include layout="@layout/toolbar_new"/>
 		</android.support.design.widget.AppBarLayout>
 
-		<ScrolasdflView
+		<ScrollView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 
@@ -171,7 +171,7 @@
 						android:layout_height="wrap_content"/>
 				</LinearLayout>
 			</LinearLayout>
-		</ScrolasdflView>
+		</ScrollView>
 	</LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
