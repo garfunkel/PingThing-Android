@@ -48,11 +48,17 @@ class PingResult {
 
 interface StatusPinger {
 	void start();
+	String getName();
+}
+
+interface OnPingResultListener{
+	void onPingResult();
 }
 
 class ServerStatusPinger extends Thread implements StatusPinger {
 	private static final String PING_CMD = "/system/bin/ping -c 1 %s";
 	private static final Pattern MS_PATTERN = Pattern.compile("time=([\\d\\.]+)\\s+ms");
+	private Pinger mPinger;
 	private View mStatusBox;
 	private TextView mHostTextView;
 	private TextView mStatusTextView;
@@ -150,7 +156,8 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 		return result;
 	}
 
-	ServerStatusPinger(View statusBox) {
+	ServerStatusPinger(Pinger pinger, View statusBox) {
+		mPinger = pinger;
 		mStatusBox = statusBox;
 		mHostTextView = (TextView) mStatusBox.findViewById(R.id.host);
 		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
@@ -166,20 +173,22 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 			else
 				mResult = pingPort(mHostTextView.getText().toString(), Integer.valueOf(mPortTextView.getText().toString()));
 
-			mStatusBox.post(new Runnable() {
-				@Override
-				public void run() {
-					mStatusTextView.setText(mResult.status.replace("\n", " "));
+			if (mPinger.getOnPingResultListener() != null) {
+				mStatusBox.post(new Runnable() {
+					@Override
+					public void run() {
+						mStatusTextView.setText(mResult.status.replace("\n", " "));
 
-					if (mResult.statusCode == PingStatus.GOOD) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-					} else if (mResult.statusCode == PingStatus.BAD) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-					} else {
-						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
+						if (mResult.statusCode == PingStatus.GOOD) {
+							mStatusBox.setBackgroundResource(R.color.statusBoxGood);
+						} else if (mResult.statusCode == PingStatus.BAD) {
+							mStatusBox.setBackgroundResource(R.color.statusBoxBad);
+						} else {
+							mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
+						}
 					}
-				}
-			});
+				});
+			}
 
 			try {
 				sleep(10000);
@@ -190,6 +199,7 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 }
 
 class WebsiteStatusPinger extends Thread implements StatusPinger {
+	private Pinger mPinger;
 	private View mStatusBox;
 	private TextView mURLTextView;
 	private TextView mExpectedStatusTextView;
@@ -288,7 +298,8 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 		return result;
 	}
 
-	WebsiteStatusPinger(View statusBox) {
+	WebsiteStatusPinger(Pinger pinger, View statusBox) {
+		mPinger = pinger;
 		mStatusBox = statusBox;
 		mURLTextView = (TextView) mStatusBox.findViewById(R.id.url);
 		mExpectedStatusTextView = (TextView) mStatusBox.findViewById(R.id.textView_expectedHTTPStatusCodes);
@@ -300,20 +311,22 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 		for (; ; ) {
 			mResult = ping((String)mStatusBox.getTag(R.id.status_box_tag_url), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_redirects), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_ssl_redirects), (int[])mStatusBox.getTag(R.id.status_box_tag_expected_status_codes));
 
-			mStatusBox.post(new Runnable() {
-				@Override
-				public void run() {
-					mStatusTextView.setText(mResult.status);
+			if (mPinger.getOnPingResultListener() != null) {
+				mStatusBox.post(new Runnable() {
+					@Override
+					public void run() {
+						mStatusTextView.setText(mResult.status);
 
-					if (mResult.statusCode == PingStatus.GOOD) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-					} else if (mResult.statusCode == PingStatus.BAD) {
-						mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-					} else {
-						mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
+						if (mResult.statusCode == PingStatus.GOOD) {
+							mStatusBox.setBackgroundResource(R.color.statusBoxGood);
+						} else if (mResult.statusCode == PingStatus.BAD) {
+							mStatusBox.setBackgroundResource(R.color.statusBoxBad);
+						} else {
+							mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
+						}
 					}
-				}
-			});
+				});
+			}
 
 			try {
 				sleep(10000);
@@ -323,52 +336,41 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	}
 }
 
-
 class Pinger extends Thread {
-	private FlexboxLayout mContainer;
 	private HashMap<String, StatusPinger> mStatusPingers;
+	private OnPingResultListener mOnPingResultListener;
 
-	Pinger(FlexboxLayout container) {
-		mContainer = container;
+	Pinger() {
 		mStatusPingers = new HashMap<>();
+		mOnPingResultListener = null;
+	}
 
-		mContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
-			@Override
-			public void onChildViewAdded(View parent, View child) {
-				String type = (String) child.getTag(R.id.status_box_tag_type);
-				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
-				StatusPinger statusPinger = null;
+	public void add(StatusPinger pinger) {
+		mStatusPingers.put(pinger.getName(), pinger);
 
-				if (type.equals(mContainer.getContext().getResources().getString(R.string.status_box_tag_type_server))) {
-					statusPinger = new ServerStatusPinger(child);
-				} else if (type.equals(mContainer.getContext().getString(R.string.status_box_tag_type_website))) {
-					statusPinger = new WebsiteStatusPinger(child);
-				}
+		pinger.start();
+	}
 
-				if (statusPinger != null) {
-					mStatusPingers.put(name, statusPinger);
+	public void remove(String name) {
+		StatusPinger statusPinger = mStatusPingers.get(name);
 
-					statusPinger.start();
-				}
+		if (statusPinger != null) {
+			Thread statusPingerThread = (Thread) statusPinger;
+
+			try {
+				statusPingerThread.join();
+			} catch (InterruptedException e) {
+
 			}
+		}
+	}
 
-			@Override
-			public void onChildViewRemoved(View parent, View child) {
-				String type = (String) child.getTag();
-				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
-				StatusPinger statusPinger = mStatusPingers.get(name);
+	public void setOnPingResultListener(OnPingResultListener listener) {
+		mOnPingResultListener = listener;
+	}
 
-				if (statusPinger != null) {
-					Thread statusPingerThread = (Thread) statusPinger;
-
-					try {
-						statusPingerThread.join();
-					} catch (InterruptedException e) {
-
-					}
-				}
-			}
-		});
+	public OnPingResultListener getOnPingResultListener() {
+		return mOnPingResultListener;
 	}
 
 	@Override

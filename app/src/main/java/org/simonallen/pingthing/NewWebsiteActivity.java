@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.CheckBox;
@@ -163,9 +162,7 @@ public class NewWebsiteActivity extends AppCompatActivity {
 			}
 		});
 
-		mWeb.setWebChromeClient(new WebChromeClient());
 		mWeb.setWebViewClient(new WebViewClient());
-		mWeb.getSettings().setJavaScriptEnabled(true);
 		mWeb.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -177,7 +174,7 @@ public class NewWebsiteActivity extends AppCompatActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.toolbar_new, menu);
+		getMenuInflater().inflate(R.menu.menu_new, menu);
 		return true;
 	}
 

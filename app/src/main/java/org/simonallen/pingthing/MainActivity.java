@@ -1,8 +1,12 @@
 package org.simonallen.pingthing;
 
 import android.content.Intent;
+import android.gesture.Gesture;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.android.flexbox.FlexboxLayout;
@@ -19,10 +24,11 @@ import com.google.android.flexbox.FlexboxLayout;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
-		implements NavigationView.OnNavigationItemSelectedListener {
+		implements NavigationView.OnNavigationItemSelectedListener, View.OnLongClickListener, View.OnClickListener, OnPingResultListener {
 	private final int mNewServerActivityCode = 0;
 	private final int mNewWebsiteActivityCode = 1;
-	private Pinger pinger;
+	private FlexboxLayout mStatusBoxContainer;
+	private Pinger mPinger;
 	private ArrayList<String> mPingerNames;
 
 	@Override
@@ -52,10 +58,38 @@ public class MainActivity extends AppCompatActivity
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
-		FlexboxLayout statusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
+		mStatusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
+
 		mPingerNames = new ArrayList<>();
-		pinger = new Pinger(statusBoxContainer);
-		pinger.start();
+		mPinger = new Pinger();
+		mPinger.setOnPingResultListener(this);
+		mPinger.start();
+
+		mStatusBoxContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
+			@Override
+			public void onChildViewAdded(View parent, View child) {
+				String type = (String) child.getTag(R.id.status_box_tag_type);
+				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
+				StatusPinger statusPinger = null;
+
+				if (type.equals(getString(R.string.status_box_tag_type_server))) {
+					statusPinger = new ServerStatusPinger(mPinger, child);
+				} else if (type.equals(getString(R.string.status_box_tag_type_website))) {
+					statusPinger = new WebsiteStatusPinger(mPinger, child);
+				}
+
+				if (statusPinger != null) {
+					mPinger.add(statusPinger);
+				}
+			}
+
+			@Override
+			public void onChildViewRemoved(View parent, View child) {
+				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
+
+				mPinger.remove(name);
+			}
+		});
 	}
 
 	@Override
@@ -145,6 +179,9 @@ public class MainActivity extends AppCompatActivity
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_server, container, false);
 
+		statusBox.setOnLongClickListener(this);
+		statusBox.setOnClickListener(this);
+
 		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
 		statusBox.setTag(R.id.status_box_tag_host, bundle.getString("host"));
 		statusBox.setTag(R.id.status_box_tag_icmp, bundle.getBoolean("icmp"));
@@ -168,6 +205,9 @@ public class MainActivity extends AppCompatActivity
 		FlexboxLayout container = (FlexboxLayout) findViewById(R.id.status_box_container);
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View statusBox = inflater.inflate(R.layout.status_box_website, container, false);
+
+		statusBox.setOnLongClickListener(this);
+		statusBox.setOnClickListener(this);
 
 		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
 		statusBox.setTag(R.id.status_box_tag_follow_redirects, bundle.getBoolean("followRedirects"));
@@ -193,5 +233,26 @@ public class MainActivity extends AppCompatActivity
 		mPingerNames.add(bundle.getString("name"));
 
 		container.addView(statusBox);
+	}
+
+	@Override
+	public void onClick(View v) {
+		Intent intent = new Intent(MainActivity.this, StatusDetailActivity.class);
+
+		intent.putExtra("name", (String)v.getTag(R.id.status_box_tag_name));
+
+		startActivity(intent);
+	}
+
+	@Override
+	public boolean onLongClick(View v) {
+		v.setBackgroundResource(R.color.statusBoxSelected);
+
+		return true;
+	}
+
+	@Override
+	public void onPingResult() {
+
 	}
 }

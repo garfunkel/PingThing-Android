@@ -93,7 +93,7 @@ public class NewServerActivity extends AppCompatActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.toolbar_new, menu);
+		getMenuInflater().inflate(R.menu.menu_new, menu);
 		return true;
 	}
 

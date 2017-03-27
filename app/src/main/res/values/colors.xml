@@ -7,5 +7,6 @@
 	<color name="statusBoxUnknown">#ffff00</color>
 	<color name="statusBoxGood">#00ff00</color>
 	<color name="statusBoxBad">#ff0000</color>
+	<color name="statusBoxSelected">#96cfe9</color>
 	<color name="toolBarText">#ffffff</color>
 </resources>
