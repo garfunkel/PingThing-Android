@@ -1,17 +1,13 @@
 package org.simonallen.pingthing;
 
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.SparseArray;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.google.android.flexbox.FlexboxLayout;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -24,13 +20,24 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static java.lang.Thread.sleep;
+
 enum PingStatus {
 	GOOD,
 	BAD,
 	UNKNOWN
 }
 
-class PingResult {
+interface StatusPinger extends Runnable {
+	String getName();
+	PingResult getResult();
+}
+
+interface OnPingResultListener{
+	void onPingResult(StatusPinger pinger, PingResult result);
+}
+
+class PingResult implements Serializable {
 	int rawStatusCode;
 	PingStatus statusCode;
 	String status;
@@ -46,23 +53,13 @@ class PingResult {
 	}
 }
 
-interface StatusPinger {
-	void start();
-	String getName();
-}
-
-interface OnPingResultListener{
-	void onPingResult();
-}
-
-class ServerStatusPinger extends Thread implements StatusPinger {
+class ServerStatusPinger implements StatusPinger {
 	private static final String PING_CMD = "/system/bin/ping -c 1 %s";
 	private static final Pattern MS_PATTERN = Pattern.compile("time=([\\d\\.]+)\\s+ms");
-	private Pinger mPinger;
-	private View mStatusBox;
-	private TextView mHostTextView;
-	private TextView mStatusTextView;
-	private TextView mPortTextView;
+	private PingManager mPingManager;
+	private String mName;
+	private String mHost;
+	private int mPort;
 	private PingResult mResult = new PingResult();
 
 	static PingResult pingICMP(String host) {
@@ -156,39 +153,44 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 		return result;
 	}
 
-	ServerStatusPinger(Pinger pinger, View statusBox) {
-		mPinger = pinger;
-		mStatusBox = statusBox;
-		mHostTextView = (TextView) mStatusBox.findViewById(R.id.host);
-		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
-		mPortTextView = (TextView) mStatusBox.findViewById(R.id.port);
+	ServerStatusPinger(PingManager pingManager, String name, String host, int port) {
+		mPingManager = pingManager;
+		mName = name;
+		mHost = host;
+		mPort = port;
+	}
+
+	@Override
+	public String getName() {
+		return mName;
+	}
+
+	@Override
+	public PingResult getResult() {
+		return mResult;
 	}
 
 	@Override
 	public void run() {
 		for (; ; ) {
-			if (mPortTextView.getText().toString().equals("ICMP"))
-				mResult = pingICMP(mHostTextView.getText().toString());
+			if (mPort == -1)
+				mResult = pingICMP(mHost);
 
 			else
-				mResult = pingPort(mHostTextView.getText().toString(), Integer.valueOf(mPortTextView.getText().toString()));
+				mResult = pingPort(mHost, mPort);
 
-			if (mPinger.getOnPingResultListener() != null) {
-				mStatusBox.post(new Runnable() {
-					@Override
-					public void run() {
-						mStatusTextView.setText(mResult.status.replace("\n", " "));
+			final ServerStatusPinger _this = this;
 
-						if (mResult.statusCode == PingStatus.GOOD) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-						} else if (mResult.statusCode == PingStatus.BAD) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-						} else {
-							mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
-						}
+			new Handler(Looper.getMainLooper()).post(new Runnable() {
+				@Override
+				public void run() {
+					OnPingResultListener listener = mPingManager.getOnPingResultListener();
+
+					if (listener != null) {
+						listener.onPingResult(_this, mResult);
 					}
-				});
-			}
+				}
+			});
 
 			try {
 				sleep(10000);
@@ -198,12 +200,13 @@ class ServerStatusPinger extends Thread implements StatusPinger {
 	}
 }
 
-class WebsiteStatusPinger extends Thread implements StatusPinger {
-	private Pinger mPinger;
-	private View mStatusBox;
-	private TextView mURLTextView;
-	private TextView mExpectedStatusTextView;
-	private TextView mStatusTextView;
+class WebsiteStatusPinger implements StatusPinger {
+	private PingManager mPingManager;
+	private String mName;
+	private String mUrl;
+	private int[] mExpectedStatusCodes;
+	private boolean mFollowRedirects;
+	private boolean mFollowSSLRedirects;
 	private PingResult mResult = new PingResult();
 	private final static SparseArray<String> HTTPStatusCodeMap = new SparseArray<String>();
 
@@ -298,35 +301,41 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 		return result;
 	}
 
-	WebsiteStatusPinger(Pinger pinger, View statusBox) {
-		mPinger = pinger;
-		mStatusBox = statusBox;
-		mURLTextView = (TextView) mStatusBox.findViewById(R.id.url);
-		mExpectedStatusTextView = (TextView) mStatusBox.findViewById(R.id.textView_expectedHTTPStatusCodes);
-		mStatusTextView = (TextView) mStatusBox.findViewById(R.id.status);
+	WebsiteStatusPinger(PingManager pingManager, String name, String url, int[] expectedStatusCodes, boolean followRedirects, boolean followSSLRedirects) {
+		mPingManager = pingManager;
+		mName = name;
+		mUrl = url;
+		mExpectedStatusCodes = expectedStatusCodes;
+		mFollowRedirects = followRedirects;
+		mFollowSSLRedirects = followSSLRedirects;
+	}
+
+	@Override
+	public String getName() {
+		return mName;
+	}
+
+	@Override
+	public PingResult getResult() {
+		return mResult;
 	}
 
 	@Override
 	public void run() {
 		for (; ; ) {
-			mResult = ping((String)mStatusBox.getTag(R.id.status_box_tag_url), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_redirects), (boolean)mStatusBox.getTag(R.id.status_box_tag_follow_ssl_redirects), (int[])mStatusBox.getTag(R.id.status_box_tag_expected_status_codes));
+			mResult = ping(mUrl, mFollowRedirects, mFollowSSLRedirects, mExpectedStatusCodes);
+			final WebsiteStatusPinger _this = this;
 
-			if (mPinger.getOnPingResultListener() != null) {
-				mStatusBox.post(new Runnable() {
-					@Override
-					public void run() {
-						mStatusTextView.setText(mResult.status);
+			new Handler(Looper.getMainLooper()).post(new Runnable() {
+				@Override
+				public void run() {
+					OnPingResultListener listener = mPingManager.getOnPingResultListener();
 
-						if (mResult.statusCode == PingStatus.GOOD) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxGood);
-						} else if (mResult.statusCode == PingStatus.BAD) {
-							mStatusBox.setBackgroundResource(R.color.statusBoxBad);
-						} else {
-							mStatusBox.setBackgroundResource(R.color.statusBoxUnknown);
-						}
+					if (listener != null) {
+						listener.onPingResult(_this, mResult);
 					}
-				});
-			}
+				}
+			});
 
 			try {
 				sleep(10000);
@@ -336,32 +345,41 @@ class WebsiteStatusPinger extends Thread implements StatusPinger {
 	}
 }
 
-class Pinger extends Thread {
+class PingManager extends Thread {
 	private HashMap<String, StatusPinger> mStatusPingers;
+	private HashMap<String, Thread> mStatusPingerThreads;
 	private OnPingResultListener mOnPingResultListener;
 
-	Pinger() {
+	PingManager() {
 		mStatusPingers = new HashMap<>();
+		mStatusPingerThreads = new HashMap<>();
 		mOnPingResultListener = null;
 	}
 
 	public void add(StatusPinger pinger) {
-		mStatusPingers.put(pinger.getName(), pinger);
+		Thread pingerThread = new Thread(pinger);
 
-		pinger.start();
+		mStatusPingers.put(pinger.getName(), pinger);
+		mStatusPingerThreads.put(pinger.getName(), pingerThread);
+
+		pingerThread.start();
+	}
+
+	public StatusPinger get(String name) {
+		return mStatusPingers.get(name);
 	}
 
 	public void remove(String name) {
-		StatusPinger statusPinger = mStatusPingers.get(name);
+		Thread pingerThread = mStatusPingerThreads.get(name);
 
-		if (statusPinger != null) {
-			Thread statusPingerThread = (Thread) statusPinger;
-
+		if (pingerThread != null) {
 			try {
-				statusPingerThread.join();
+				pingerThread.join();
 			} catch (InterruptedException e) {
 
 			}
+
+			mStatusPingers.remove(name);
 		}
 	}
 

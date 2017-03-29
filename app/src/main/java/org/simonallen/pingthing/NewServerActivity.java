@@ -23,6 +23,7 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class NewServerActivity extends AppCompatActivity {
 	private EditText mName;
@@ -172,9 +173,9 @@ public class NewServerActivity extends AppCompatActivity {
 			return false;
 		}
 
-		ArrayList<String> existingNames = getIntent().getExtras().getStringArrayList("existingNames");
+		String[] existingNames = getIntent().getExtras().getStringArray("existingNames");
 
-		if (existingNames.contains(mName.getText().toString())) {
+		if (Arrays.asList(existingNames).contains(mName.getText().toString())) {
 			mName.setError("Name has already been used.");
 
 			return false;

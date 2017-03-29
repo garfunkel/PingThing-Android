@@ -1,12 +1,9 @@
 package org.simonallen.pingthing;
 
 import android.content.Intent;
-import android.gesture.Gesture;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -22,14 +19,15 @@ import android.widget.TextView;
 import com.google.android.flexbox.FlexboxLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener, View.OnLongClickListener, View.OnClickListener, OnPingResultListener {
 	private final int mNewServerActivityCode = 0;
 	private final int mNewWebsiteActivityCode = 1;
 	private FlexboxLayout mStatusBoxContainer;
-	private Pinger mPinger;
-	private ArrayList<String> mPingerNames;
+	private PingManager mPingManager;
+	private HashMap<String, View> mStatusBoxes;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,26 +58,34 @@ public class MainActivity extends AppCompatActivity
 
 		mStatusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
 
-		mPingerNames = new ArrayList<>();
-		mPinger = new Pinger();
-		mPinger.setOnPingResultListener(this);
-		mPinger.start();
+		mStatusBoxes = new HashMap<>();
+		mPingManager = new PingManager();
+		mPingManager.setOnPingResultListener(this);
+		mPingManager.start();
 
 		mStatusBoxContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
 			@Override
 			public void onChildViewAdded(View parent, View child) {
 				String type = (String) child.getTag(R.id.status_box_tag_type);
-				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
+				String name = (String) child.getTag(R.id.status_box_tag_name);
 				StatusPinger statusPinger = null;
 
 				if (type.equals(getString(R.string.status_box_tag_type_server))) {
-					statusPinger = new ServerStatusPinger(mPinger, child);
+					String host = (String) child.getTag(R.id.status_box_tag_host);
+					int port = (int) child.getTag(R.id.status_box_tag_port);
+
+					statusPinger = new ServerStatusPinger(mPingManager, name, host, port);
 				} else if (type.equals(getString(R.string.status_box_tag_type_website))) {
-					statusPinger = new WebsiteStatusPinger(mPinger, child);
+					String url = (String) child.getTag(R.id.status_box_tag_url);
+					boolean followRedirects = (boolean) child.getTag(R.id.status_box_tag_follow_redirects);
+					boolean followSSLRedirects = (boolean) child.getTag(R.id.status_box_tag_follow_ssl_redirects);
+					int[] expectedStatusCodes = (int[]) child.getTag(R.id.status_box_tag_expected_status_codes);
+
+					statusPinger = new WebsiteStatusPinger(mPingManager, name, url, expectedStatusCodes, followRedirects, followSSLRedirects);
 				}
 
 				if (statusPinger != null) {
-					mPinger.add(statusPinger);
+					mPingManager.add(statusPinger);
 				}
 			}
 
@@ -87,7 +93,7 @@ public class MainActivity extends AppCompatActivity
 			public void onChildViewRemoved(View parent, View child) {
 				String name = ((TextView) child.findViewById(R.id.name)).getText().toString();
 
-				mPinger.remove(name);
+				mPingManager.remove(name);
 			}
 		});
 	}
@@ -115,14 +121,14 @@ public class MainActivity extends AppCompatActivity
 
 		if (id == R.id.action_new_server) {
 			Intent intent = new Intent(MainActivity.this, NewServerActivity.class);
-			intent.putExtra("existingNames", mPingerNames);
+			intent.putExtra("existingNames", mStatusBoxes.keySet().toArray(new String[mStatusBoxes.size()]));
 
 			startActivityForResult(intent, mNewServerActivityCode);
 
 			return true;
 		} else if (id == R.id.action_new_website) {
 			Intent intent = new Intent(MainActivity.this, NewWebsiteActivity.class);
-			intent.putExtra("existingNames", mPingerNames);
+			intent.putExtra("existingNames", mStatusBoxes.keySet().toArray(new String[mStatusBoxes.size()]));
 
 			startActivityForResult(intent, mNewWebsiteActivityCode);
 
@@ -196,7 +202,7 @@ public class MainActivity extends AppCompatActivity
 		else
 			((TextView) statusBox.findViewById(R.id.port)).setText(String.valueOf(bundle.getInt("port")));
 
-		mPingerNames.add(bundle.getString("name"));
+		mStatusBoxes.put(bundle.getString("name"), statusBox);
 
 		container.addView(statusBox);
 	}
@@ -230,7 +236,7 @@ public class MainActivity extends AppCompatActivity
 
 		((TextView) statusBox.findViewById(R.id.textView_expectedHTTPStatusCodes)).setText(stringBuilder.toString().replaceFirst(", $", ""));
 
-		mPingerNames.add(bundle.getString("name"));
+		mStatusBoxes.put(bundle.getString("name"), statusBox);
 
 		container.addView(statusBox);
 	}
@@ -238,8 +244,11 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	public void onClick(View v) {
 		Intent intent = new Intent(MainActivity.this, StatusDetailActivity.class);
+		String name = (String)v.getTag(R.id.status_box_tag_name);
+		StatusPinger statusPinger = mPingManager.get(name);
 
-		intent.putExtra("name", (String)v.getTag(R.id.status_box_tag_name));
+		intent.putExtra("name", name);
+		intent.putExtra("result", statusPinger.getResult());
 
 		startActivity(intent);
 	}
@@ -252,7 +261,19 @@ public class MainActivity extends AppCompatActivity
 	}
 
 	@Override
-	public void onPingResult() {
+	public void onPingResult(StatusPinger pinger, PingResult result) {
+		String name = pinger.getName();
+		View statusBox = mStatusBoxes.get(name);
+		TextView statusTextView = (TextView) statusBox.findViewById(R.id.status);
 
+		statusTextView.setText(result.status.replace("\n", " "));
+
+		if (result.statusCode == PingStatus.GOOD) {
+			statusBox.setBackgroundResource(R.color.statusBoxGood);
+		} else if (result.statusCode == PingStatus.BAD) {
+			statusBox.setBackgroundResource(R.color.statusBoxBad);
+		} else {
+			statusBox.setBackgroundResource(R.color.statusBoxUnknown);
+		}
 	}
 }
