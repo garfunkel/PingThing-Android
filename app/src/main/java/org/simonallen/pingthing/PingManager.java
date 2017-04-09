@@ -8,10 +8,13 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +34,7 @@ enum PingStatus {
 interface StatusPinger extends Runnable {
 	String getName();
 	PingResult getResult();
+	ArrayList<PingResult> getResultHistory();
 }
 
 interface OnPingResultListener{
@@ -43,6 +47,7 @@ class PingResult implements Serializable {
 	String status;
 	double pingTime;
 	String data;
+	Date date;
 
 	PingResult() {
 		rawStatusCode = -1;
@@ -61,6 +66,7 @@ class ServerStatusPinger implements StatusPinger {
 	private String mHost;
 	private int mPort;
 	private PingResult mResult = new PingResult();
+	private ArrayList<PingResult> mResultHistory = new ArrayList<>();
 
 	static PingResult pingICMP(String host) {
 		Process process = null;
@@ -86,6 +92,8 @@ class ServerStatusPinger implements StatusPinger {
 				default:
 					result.statusCode = PingStatus.BAD;
 			}
+
+			result.date = new Date();
 
 			// Read stdout into string.
 			reader = new BufferedReader(new InputStreamReader(outStream));
@@ -139,6 +147,7 @@ class ServerStatusPinger implements StatusPinger {
 
 			long endTime = System.nanoTime();
 
+			result.date = new Date();
 			result.statusCode = PingStatus.GOOD;
 			result.status = "OK";
 			result.pingTime = (endTime - startTime) / 1000000.0;
@@ -171,6 +180,9 @@ class ServerStatusPinger implements StatusPinger {
 	}
 
 	@Override
+	public ArrayList<PingResult> getResultHistory() { return mResultHistory; }
+
+	@Override
 	public void run() {
 		for (; ; ) {
 			if (mPort == -1)
@@ -178,6 +190,8 @@ class ServerStatusPinger implements StatusPinger {
 
 			else
 				mResult = pingPort(mHost, mPort);
+
+			mResultHistory.add(0, mResult);
 
 			final ServerStatusPinger _this = this;
 
@@ -208,6 +222,7 @@ class WebsiteStatusPinger implements StatusPinger {
 	private boolean mFollowRedirects;
 	private boolean mFollowSSLRedirects;
 	private PingResult mResult = new PingResult();
+	private ArrayList<PingResult> mResultHistory = new ArrayList<>();
 	private final static SparseArray<String> HTTPStatusCodeMap = new SparseArray<String>();
 
 	static {
@@ -274,6 +289,7 @@ class WebsiteStatusPinger implements StatusPinger {
 
 			response = client.newCall(request).execute();
 
+			result.date = new Date();
 			result.rawStatusCode = response.code();
 			result.statusCode = PingStatus.BAD;
 
@@ -321,9 +337,14 @@ class WebsiteStatusPinger implements StatusPinger {
 	}
 
 	@Override
+	public ArrayList<PingResult> getResultHistory() { return mResultHistory; }
+
+	@Override
 	public void run() {
 		for (; ; ) {
 			mResult = ping(mUrl, mFollowRedirects, mFollowSSLRedirects, mExpectedStatusCodes);
+			mResultHistory.add(0, mResult);
+
 			final WebsiteStatusPinger _this = this;
 
 			new Handler(Looper.getMainLooper()).post(new Runnable() {

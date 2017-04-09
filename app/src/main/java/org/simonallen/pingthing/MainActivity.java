@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener, View.OnLongClickListener, View.OnClickListener, OnPingResultListener {
 	private final int mNewServerActivityCode = 0;
 	private final int mNewWebsiteActivityCode = 1;
-	private FlexboxLayout mStatusBoxContainer;
 	private PingManager mPingManager;
 	private HashMap<String, View> mStatusBoxes;
 
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
-		mStatusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
+		FlexboxLayout mStatusBoxContainer = (FlexboxLayout) findViewById(R.id.status_box_container);
 
 		mStatusBoxes = new HashMap<>();
 		mPingManager = new PingManager();
@@ -66,22 +65,13 @@ public class MainActivity extends AppCompatActivity
 		mStatusBoxContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
 			@Override
 			public void onChildViewAdded(View parent, View child) {
-				String type = (String) child.getTag(R.id.status_box_tag_type);
-				String name = (String) child.getTag(R.id.status_box_tag_name);
+				Bundle bundle = (Bundle)child.getTag();
 				StatusPinger statusPinger = null;
 
-				if (type.equals(getString(R.string.status_box_tag_type_server))) {
-					String host = (String) child.getTag(R.id.status_box_tag_host);
-					int port = (int) child.getTag(R.id.status_box_tag_port);
-
-					statusPinger = new ServerStatusPinger(mPingManager, name, host, port);
-				} else if (type.equals(getString(R.string.status_box_tag_type_website))) {
-					String url = (String) child.getTag(R.id.status_box_tag_url);
-					boolean followRedirects = (boolean) child.getTag(R.id.status_box_tag_follow_redirects);
-					boolean followSSLRedirects = (boolean) child.getTag(R.id.status_box_tag_follow_ssl_redirects);
-					int[] expectedStatusCodes = (int[]) child.getTag(R.id.status_box_tag_expected_status_codes);
-
-					statusPinger = new WebsiteStatusPinger(mPingManager, name, url, expectedStatusCodes, followRedirects, followSSLRedirects);
+				if (bundle.getString("type").equals(getString(R.string.status_box_tag_type_server))) {
+					statusPinger = new ServerStatusPinger(mPingManager, bundle.getString("name"), bundle.getString("host"), bundle.getInt("port"));
+				} else if (bundle.getString("type").equals(getString(R.string.status_box_tag_type_website))) {
+					statusPinger = new WebsiteStatusPinger(mPingManager, bundle.getString("name"), bundle.getString("url"), bundle.getIntArray("expectedStatusCodes"), bundle.getBoolean("followRedirects"), bundle.getBoolean("followSSLRedirects"));
 				}
 
 				if (statusPinger != null) {
@@ -188,10 +178,7 @@ public class MainActivity extends AppCompatActivity
 		statusBox.setOnLongClickListener(this);
 		statusBox.setOnClickListener(this);
 
-		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
-		statusBox.setTag(R.id.status_box_tag_host, bundle.getString("host"));
-		statusBox.setTag(R.id.status_box_tag_icmp, bundle.getBoolean("icmp"));
-		statusBox.setTag(R.id.status_box_tag_port, bundle.getInt("port"));
+		statusBox.setTag(bundle);
 
 		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView) statusBox.findViewById(R.id.host)).setText(bundle.getString("host"));
@@ -215,11 +202,7 @@ public class MainActivity extends AppCompatActivity
 		statusBox.setOnLongClickListener(this);
 		statusBox.setOnClickListener(this);
 
-		statusBox.setTag(R.id.status_box_tag_name, bundle.getString("name"));
-		statusBox.setTag(R.id.status_box_tag_follow_redirects, bundle.getBoolean("followRedirects"));
-		statusBox.setTag(R.id.status_box_tag_follow_ssl_redirects, bundle.getBoolean("followSSLRedirects"));
-		statusBox.setTag(R.id.status_box_tag_url, bundle.getString("url"));
-		statusBox.setTag(R.id.status_box_tag_expected_status_codes, bundle.getIntArray("expectedStatusCodes"));
+		statusBox.setTag(bundle);
 
 		((TextView) statusBox.findViewById(R.id.name)).setText(bundle.getString("name"));
 		((TextView) statusBox.findViewById(R.id.url)).setText(bundle.getString("url"));
@@ -244,11 +227,13 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	public void onClick(View v) {
 		Intent intent = new Intent(MainActivity.this, StatusDetailActivity.class);
-		String name = (String)v.getTag(R.id.status_box_tag_name);
-		StatusPinger statusPinger = mPingManager.get(name);
+		Bundle bundle = (Bundle)v.getTag();
 
-		intent.putExtra("name", name);
+		StatusPinger statusPinger = mPingManager.get(bundle.getString("name"));
+
+		intent.replaceExtras(bundle);
 		intent.putExtra("result", statusPinger.getResult());
+		intent.putExtra("resultHistory", statusPinger.getResultHistory());
 
 		startActivity(intent);
 	}

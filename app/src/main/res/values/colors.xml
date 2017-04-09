@@ -9,4 +9,5 @@
 	<color name="statusBoxBad">#ff0000</color>
 	<color name="statusBoxSelected">#96cfe9</color>
 	<color name="toolBarText">#ffffff</color>
+	<color name="black">#000000</color>
 </resources>

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:fitsSystemWindows="true"
+	tools:context="org.simonallen.pingthing.StatusDetailActivity">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:orientation="vertical">
+
+		<android.support.design.widget.AppBarLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:theme="@style/AppTheme.AppBarOverlay">
+
+			<include layout="@layout/toolbar_status_detail"/>
+		</android.support.design.widget.AppBarLayout>
+
+		<android.support.v7.widget.CardView
+			xmlns:card_view="http://schemas.android.com/apk/res-auto"
+			android:id="@+id/cardView_summary"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:layout_marginLeft="10dp"
+			android:layout_marginRight="10dp"
+			android:layout_marginTop="10dp"
+			card_view:cardCornerRadius="4dp"
+			card_view:cardElevation="4dp">
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dp">
+
+				<com.github.mikephil.charting.charts.PieChart
+					android:id="@+id/pieChart_uptime"
+					android:layout_width="120dp"
+					android:layout_height="120dp">
+				</com.github.mikephil.charting.charts.PieChart>
+
+				<TextView
+					android:id="@+id/textView_nameLabel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginEnd="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_toEndOf="@id/pieChart_uptime"
+					android:layout_toRightOf="@id/pieChart_uptime"
+					android:text="Name:"
+					android:textStyle="bold"/>
+
+				<TextView
+					android:id="@+id/textView_name"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toEndOf="@id/textView_nameLabel"
+					android:layout_toRightOf="@+id/textView_nameLabel"/>
+
+				<TextView
+					android:id="@+id/textView_hostLabel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_nameLabel"
+					android:layout_marginEnd="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_toEndOf="@id/pieChart_uptime"
+					android:layout_toRightOf="@id/pieChart_uptime"
+					android:text="Host:"
+					android:textStyle="bold"/>
+
+				<TextView
+					android:id="@+id/textView_host"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_name"
+					android:layout_toEndOf="@id/textView_nameLabel"
+					android:layout_toRightOf="@id/textView_nameLabel"/>
+
+				<TextView
+					android:id="@+id/textView_typeLabel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_hostLabel"
+					android:layout_marginEnd="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_toEndOf="@id/pieChart_uptime"
+					android:layout_toRightOf="@id/pieChart_uptime"
+					android:text="Type:"
+					android:textStyle="bold"/>
+
+				<TextView
+					android:id="@+id/textView_type"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_hostLabel"
+					android:layout_marginEnd="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_toEndOf="@id/textView_nameLabel"
+					android:layout_toRightOf="@id/textView_nameLabel"
+					android:text="@string/status_box_tag_type_server"/>
+
+				<TextView
+					android:id="@+id/textView_portLabel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_typeLabel"
+					android:layout_marginEnd="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_toEndOf="@id/pieChart_uptime"
+					android:layout_toRightOf="@id/pieChart_uptime"
+					android:text="Port:"
+					android:textStyle="bold"/>
+
+				<TextView
+					android:id="@+id/textView_port"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_typeLabel"
+					android:layout_toEndOf="@id/textView_nameLabel"
+					android:layout_toRightOf="@id/textView_nameLabel"/>
+
+				<com.google.android.flexbox.FlexboxLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/textView_portLabel"
+					android:layout_toEndOf="@id/pieChart_uptime"
+					android:layout_toRightOf="@id/pieChart_uptime"
+					app:dividerDrawable="@drawable/uptime_chart_divider"
+					app:flexWrap="wrap"
+					app:showDivider="middle">
+
+					<LinearLayout
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content">
+
+						<View
+							android:layout_width="10dp"
+							android:layout_height="10dp"
+							android:layout_gravity="center"
+							android:layout_marginEnd="5dp"
+							android:layout_marginRight="5dp"
+							android:background="@color/statusBoxGood"/>
+
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:id="@+id/textView_uptimeChartGoodPercent"/>
+					</LinearLayout>
+
+					<LinearLayout
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content">
+
+						<View
+							android:layout_width="10dp"
+							android:layout_height="10dp"
+							android:layout_gravity="center"
+							android:layout_marginEnd="5dp"
+							android:layout_marginRight="5dp"
+							android:background="@color/statusBoxBad"/>
+
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:id="@+id/textView_uptimeChartBadPercent"/>
+					</LinearLayout>
+
+					<LinearLayout
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content">
+
+						<View
+							android:layout_width="10dp"
+							android:layout_height="10dp"
+							android:layout_gravity="center"
+							android:layout_marginEnd="5dp"
+							android:layout_marginRight="5dp"
+							android:background="@color/statusBoxUnknown"/>
+
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:id="@+id/textView_uptimeChartUnknownPercent"/>
+					</LinearLayout>
+
+				</com.google.android.flexbox.FlexboxLayout>
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"/>
+
+			</RelativeLayout>
+
+		</android.support.v7.widget.CardView>
+
+		<android.support.v7.widget.CardView
+			xmlns:card_view="http://schemas.android.com/apk/res-auto"
+			android:id="@+id/cardView_desc"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:layout_marginBottom="10dp"
+			android:layout_marginLeft="10dp"
+			android:layout_marginRight="10dp"
+			android:layout_marginTop="10dp"
+			card_view:cardCornerRadius="4dp"
+			card_view:cardElevation="4dp">
+
+			<android.support.v7.widget.RecyclerView
+				android:id="@+id/recyclerView_history"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="5dp"
+				android:layout_marginLeft="10dp"
+				android:layout_marginRight="10dp"
+				android:layout_marginTop="5dp"/>
+
+		</android.support.v7.widget.CardView>
+
+	</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

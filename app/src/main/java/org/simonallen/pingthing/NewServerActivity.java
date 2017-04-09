@@ -128,6 +128,7 @@ public class NewServerActivity extends AppCompatActivity {
 				if (!validateAll())
 					break;
 
+				intent.putExtra("type", "server");
 				intent.putExtra("name", ((EditText) findViewById(R.id.exittext_name)).getText().toString());
 				intent.putExtra("host", ((EditText) findViewById(R.id.edittext_host)).getText().toString());
 				intent.putExtra("icmp", ((CheckBox) findViewById(R.id.icmp)).isChecked());
